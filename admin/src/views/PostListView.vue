@@ -4,6 +4,8 @@
       <h2>文章管理</h2>
       <div class="topbar-actions">
         <button class="new-post-btn" @click="$router.push('/editor')">+ 发新动态</button>
+        <button class="logout-btn" @click="$router.push('/media')">媒体库</button>
+        <button class="logout-btn" @click="$router.push('/settings')">站点设置</button>
         <button class="logout-btn" @click="handleLogout">退出</button>
       </div>
     </header>

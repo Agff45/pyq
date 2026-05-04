@@ -3,7 +3,11 @@
     <header class="editor-topbar">
       <button class="back-btn" @click="$router.push('/editor')"><span>←</span> 返回</button>
       <h2>站点设置</h2>
-      <button class="logout-btn" @click="handleLogout">退出</button>
+      <div class="topbar-actions">
+        <button class="logout-btn" @click="$router.push('/posts')">文章管理</button>
+        <button class="logout-btn" @click="$router.push('/media')">媒体库</button>
+        <button class="logout-btn" @click="handleLogout">退出</button>
+      </div>
     </header>
 
     <main class="settings-main">

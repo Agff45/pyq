@@ -122,6 +122,19 @@
 
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
 
+@media (max-width: 640px) {
+  .editor-topbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
 /* ========== 站点设置 ========== */
 .settings-main {
   max-width: 920px;

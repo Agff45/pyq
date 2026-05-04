@@ -5,7 +5,11 @@
         <span>←</span> 文章管理
       </button>
       <h2>{{ isEdit ? '编辑动态' : '发新动态' }}</h2>
-      <button class="logout-btn" @click="handleLogout">退出</button>
+      <div class="topbar-actions">
+        <button class="logout-btn" @click="$router.push('/media')">媒体库</button>
+        <button class="logout-btn" @click="$router.push('/settings')">站点设置</button>
+        <button class="logout-btn" @click="handleLogout">退出</button>
+      </div>
     </header>
 
     <main class="editor-main">
