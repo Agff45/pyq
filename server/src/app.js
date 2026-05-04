@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const config = require('./config');
 const postService = require('./services/postService');
+const hugoService = require('./services/hugoService');
 
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
@@ -66,6 +67,8 @@ app.listen(config.port, () => {
   console.log(`Amigo 管理服务已启动 → http://localhost:${config.port}`);
   console.log(`管理后台入口 → http://localhost:${config.port}/admin`);
   console.log(`API 入口 → http://localhost:${config.port}/api`);
+
+  hugoService.ensureThemeSymlink();
 
   try {
     const index = postService.loadIndex();
