@@ -450,6 +450,20 @@
 
 .settings-checks input { accent-color: var(--theme-color); }
 
+.pwd-save-btn {
+  margin-top: 14px;
+  padding: 8px 24px;
+  border: 1px solid var(--border-main);
+  border-radius: 8px;
+  background: var(--bg-card);
+  font-size: 13px;
+  color: var(--text-desc);
+  cursor: pointer;
+}
+
+.pwd-save-btn:hover { border-color: var(--theme-color); color: var(--theme-color); }
+.pwd-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .settings-footer {
   display: flex;
   align-items: center;

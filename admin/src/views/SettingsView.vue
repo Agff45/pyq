@@ -182,6 +182,29 @@
           </label>
         </section>
 
+        <section class="settings-section">
+          <div class="settings-section-head">
+            <h3>账号安全</h3>
+            <p>修改管理后台登录密码。</p>
+          </div>
+
+          <div class="settings-grid two-cols">
+            <label class="settings-field">
+              <span>当前密码</span>
+              <input v-model="pwd.oldPassword" type="password" placeholder="输入当前密码" autocomplete="current-password" />
+            </label>
+            <label class="settings-field">
+              <span>新密码</span>
+              <input v-model="pwd.newPassword" type="password" placeholder="至少 4 位" autocomplete="new-password" />
+            </label>
+          </div>
+
+          <button type="button" class="pwd-save-btn" :disabled="pwdSaving" @click="handleChangePassword">
+            {{ pwdSaving ? '更新中...' : '更新密码' }}
+          </button>
+          <p v-if="pwdMsg" class="settings-status" :class="pwdMsgType">{{ pwdMsg }}</p>
+        </section>
+
         <div class="settings-footer">
           <p class="settings-status" :class="toastType">{{ toastMsg }}</p>
           <button type="submit" class="publish-btn" :disabled="saving || loading">
@@ -200,6 +223,7 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { getSettings, updateSettings } from '@/api/settings';
+import { changePassword } from '@/api/auth';
 import { uploadFiles } from '@/api/upload';
 
 const router = useRouter();
@@ -210,6 +234,11 @@ const loading = ref(false);
 const saving = ref(false);
 const toastMsg = ref('');
 const toastType = ref('success');
+
+const pwd = reactive({ oldPassword: '', newPassword: '' });
+const pwdSaving = ref(false);
+const pwdMsg = ref('');
+const pwdMsgType = ref('success');
 
 const form = reactive({
   title: '',
@@ -305,6 +334,28 @@ async function handleSave() {
     showToast('保存失败: ' + (err.response?.data?.message || err.message), 'error');
   } finally {
     saving.value = false;
+  }
+}
+
+async function handleChangePassword() {
+  if (!pwd.oldPassword || !pwd.newPassword) {
+    pwdMsg.value = '请填写当前密码和新密码';
+    pwdMsgType.value = 'error';
+    return;
+  }
+  pwdSaving.value = true;
+  pwdMsg.value = '';
+  try {
+    const res = await changePassword(pwd.oldPassword, pwd.newPassword);
+    pwdMsg.value = res.data.message || '密码已更新';
+    pwdMsgType.value = 'success';
+    pwd.oldPassword = '';
+    pwd.newPassword = '';
+  } catch (err) {
+    pwdMsg.value = err.response?.data?.message || '操作失败';
+    pwdMsgType.value = 'error';
+  } finally {
+    pwdSaving.value = false;
   }
 }
 
