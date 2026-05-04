@@ -6,3 +6,4 @@ server/data/
 public/
 admin/dist/
 .DS_Store
+opencode.json
