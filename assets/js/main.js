@@ -1832,7 +1832,23 @@ function initMoments() {
                 textDiv.classList.add('has-motion-photos');
                 textWrapper.classList.add('has-motion-photos');
                 textDiv.dataset.motionCount = String(motionPhotos.length);
-                // 设置网格列数
+
+                if (motionPhotos.length === 1) {
+                    // 单张：保留原始比例，限制宽度
+                    const single = motionPhotos[0];
+                    single.style.width = 'min(68%, 320px)';
+                    single.style.maxWidth = 'none';
+                    single.style.aspectRatio = single.getAttribute('style')
+                        ?.match(/aspect-ratio:\s*([^;]+)/)?.[1]?.trim() || single.style.aspectRatio;
+                } else {
+                    // 多张：全部强制 1/1 方图
+                    motionPhotos.forEach(el => {
+                        el.style.removeProperty('width');
+                        el.style.removeProperty('max-width');
+                        el.style.aspectRatio = '1 / 1';
+                    });
+                }
+
                 const cols = Math.min(motionPhotos.length, 3);
                 const colsMd = Math.min(motionPhotos.length, 2);
                 const colsSm = 1;

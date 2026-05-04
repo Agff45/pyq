@@ -1155,6 +1155,13 @@ body:has(.view-image) .single-header {
     -webkit-line-clamp: unset !important;
 }
 
+/* 多张时网格内每项撑满 */
+.moment-text.has-motion-photos:not([data-motion-count="1"]) .live-photo-container,
+.article-text.has-motion-photos:not([data-motion-count="1"]) .live-photo-container {
+    width: 100% !important;
+    max-width: none !important;
+}
+
 .moments-feed .moment-text.has-motion-photos {
     --motion-photo-single-width-ratio: 68%;
     --motion-photo-single-max-width: 320px;
