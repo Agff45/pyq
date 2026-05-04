@@ -74,23 +74,22 @@
 <body>
     <!-- 整个页面的主包裹层 -->
     <div class="main-wrapper">
-        <!-- 首页的页眉（带菜单按钮） -->
+        <!-- 首页的页眉 -->
         {{ if .IsHome }}
         <header class="home-header">
-            <button id="menu-toggle" aria-label="Menu" title="菜单">
-                <i class="ri-menu-line"></i>
-            </button>
-            <div class="header-center">
-                {{ if ne .Site.Params.enableSearch false }}
-                <div class="header-search">
+            {{ if ne .Site.Params.enableSearch false }}
+            <div class="header-search" id="header-search">
+                <button class="header-search-toggle" id="header-search-toggle" aria-label="搜索">
                     <i class="ri-search-line"></i>
+                </button>
+                <div class="header-search-expand" id="header-search-expand">
                     <input type="text" id="home-search-input" placeholder="搜索">
                     <button id="home-search-clear" class="nav-btn" aria-label="清除">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
-                {{ end }}
             </div>
+            {{ end }}
             <div class="header-actions">
                 <button class="nav-btn btn-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="回到顶部">
                     <i class="ri-arrow-up-line"></i>
@@ -111,21 +110,5 @@
         {{ partial "footer.html" . }}
     </div>
 
-    <!-- Full Screen Menu Overlay -->
-    <div id="menu-overlay">
-        <div class="menu-content">
-            <nav class="menu-nav">
-                <ul>
-                    {{ range .Site.Menus.main }}
-                    <li>
-                        <a href="{{ .URL | relURL }}" class="menu-link">
-                            {{ .Name }}
-                        </a>
-                    </li>
-                    {{ end }}
-                </ul>
-            </nav>
-        </div>
-    </div>
 </body>
 </html>

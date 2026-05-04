@@ -6,21 +6,6 @@ theme = 'Amigo'
 [permalinks]
   posts = "/:filename.html"
 
-[[menu.main]]
-  name = "首页"
-  url = "/"
-  weight = 1
-
-[[menu.main]]
-  name = "关于"
-  url = "/about.html"
-  weight = 2
-
-[[menu.main]]
-  name = "友链"
-  url = "/friends.html"
-  weight = 3
-
 [params]
   # ---------------------------------------------------------------------------------------
   # 个人信息设置

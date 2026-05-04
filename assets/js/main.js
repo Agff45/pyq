@@ -56,7 +56,6 @@ const AudioManager = {
 document.addEventListener("DOMContentLoaded", function() {
     initMoments();
     initLightbox();
-    initMenu();
     initTheme();
     initThemeToggle();
     initHeaderMedia();
@@ -74,7 +73,6 @@ document.addEventListener("DOMContentLoaded", function() {
 document.addEventListener("pjax:complete", function() {
     initMoments();
     initLightbox();
-    initMenu();
     initThemeToggle();
     initHeaderMedia();
     initArchiveFilter();
@@ -226,9 +224,11 @@ function initLightbox() {
 function initHomeSearch() {
     var header = document.querySelector('.home-header');
     if (!header) return;
+    var container = document.getElementById('header-search');
+    var toggle = document.getElementById('header-search-toggle');
     var input = document.getElementById('home-search-input');
     var clearBtn = document.getElementById('home-search-clear');
-    if (!input || !clearBtn) return;
+    if (!container || !toggle || !input || !clearBtn) return;
 
     var cards = Array.prototype.slice.call(document.querySelectorAll('.moments-feed .moment-card'));
     var timer = null;
@@ -275,6 +275,21 @@ function initHomeSearch() {
         emptyTip.style.display = anyVisible ? 'none' : 'block';
     }
 
+    function openSearch() {
+        container.classList.add('is-open');
+        setTimeout(function() { input.focus(); }, 350);
+    }
+
+    function closeSearch() {
+        container.classList.remove('is-open');
+        input.value = '';
+        applyFilter('');
+    }
+
+    var newToggle = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(newToggle, toggle);
+    toggle = newToggle;
+
     var newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     input = newInput;
@@ -282,6 +297,21 @@ function initHomeSearch() {
     var newClear = clearBtn.cloneNode(true);
     clearBtn.parentNode.replaceChild(newClear, clearBtn);
     clearBtn = newClear;
+
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (container.classList.contains('is-open')) {
+            closeSearch();
+        } else {
+            openSearch();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (container.classList.contains('is-open') && !container.contains(e.target)) {
+            closeSearch();
+        }
+    });
 
     input.addEventListener('input', function() {
         if (timer) clearTimeout(timer);
@@ -291,8 +321,7 @@ function initHomeSearch() {
 
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            input.value = '';
-            applyFilter('');
+            closeSearch();
         }
     });
 
@@ -311,6 +340,7 @@ function initHomeSearch() {
                 e.preventDefault();
                 e.stopPropagation();
                 var tagName = e.target.textContent.replace('#', '').trim();
+                openSearch();
                 input.value = tagName;
                 applyFilter(tagName);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -320,6 +350,7 @@ function initHomeSearch() {
                 e.preventDefault();
                 e.stopPropagation();
                 var locName = e.target.textContent.trim();
+                openSearch();
                 input.value = locName;
                 applyFilter(locName);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
