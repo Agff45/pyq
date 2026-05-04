@@ -103,7 +103,7 @@ function removeFromIndex(filename) {
   saveIndex(index);
 }
 
-function createPost({ title, content, author, location, tags, images, cover, isLongArticle, weight, comments, draft, date }) {
+function createPost({ title, content, author, location, tags, images, cover, isLongArticle, weight, draft, date }) {
   ensureContentDir();
   const filename = generateFilename(title || '未命名', date);
   const frontMatter = {
@@ -119,7 +119,6 @@ function createPost({ title, content, author, location, tags, images, cover, isL
   if (isLongArticle) frontMatter.isLongArticle = true;
   if (weight) frontMatter.weight = weight;
   if (draft) frontMatter.draft = true;
-  if (comments === false) frontMatter.comments = false;
 
   const filePath = writePost(filename, frontMatter, content);
 
@@ -129,7 +128,7 @@ function createPost({ title, content, author, location, tags, images, cover, isL
   return { ...indexEntry, filePath };
 }
 
-function updatePost(filename, { title, content, author, location, tags, images, cover, isLongArticle, weight, comments, draft }) {
+function updatePost(filename, { title, content, author, location, tags, images, cover, isLongArticle, weight, draft }) {
   const existing = readPost(filename);
   if (!existing) return null;
 
@@ -144,7 +143,6 @@ function updatePost(filename, { title, content, author, location, tags, images, 
   if (cover !== undefined) frontMatter.cover = cover;
   if (isLongArticle !== undefined) frontMatter.isLongArticle = isLongArticle;
   if (weight !== undefined) frontMatter.weight = weight;
-  if (comments !== undefined) frontMatter.comments = comments;
   if (draft !== undefined) frontMatter.draft = draft;
 
   frontMatter.lastmod = new Date().toISOString();

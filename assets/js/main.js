@@ -1,5 +1,3 @@
-let artalkInstances = [];
-
 /* ==========================================================================
    全局音频管理器 - 保证 PJAX 切换页面时音乐不中断
    ========================================================================== */
@@ -55,59 +53,15 @@ const AudioManager = {
     }
 };
 
-// 点赞数缓存管理
-const LikesCache = {
-    prefix: 'likes_',
-
-    // 获取文章的点赞数缓存
-    get(pageKey) {
-        try {
-            const cached = sessionStorage.getItem(this.prefix + pageKey);
-            if (cached) {
-                const data = JSON.parse(cached);
-                return data.count || 0;
-            }
-        } catch (e) {
-            console.warn('读取点赞缓存失败:', e);
-        }
-        return null;
-    },
-
-    // 设置文章的点赞数缓存
-    set(pageKey, count) {
-        try {
-            sessionStorage.setItem(this.prefix + pageKey, JSON.stringify({
-                count: count,
-                time: Date.now()
-            }));
-        } catch (e) {
-            console.warn('设置点赞缓存失败:', e);
-        }
-    },
-
-    // 清除文章的点赞数缓存
-    clear(pageKey) {
-        try {
-            sessionStorage.removeItem(this.prefix + pageKey);
-        } catch (e) {
-            console.warn('清除点赞缓存失败:', e);
-        }
-    }
-};
-
 document.addEventListener("DOMContentLoaded", function() {
     initMoments();
-    initArtalk();
-    initTwikoo();
     initLightbox();
     initMenu();
     initTheme();
     initThemeToggle();
     initHeaderMedia();
-    initLivePhotoShortcodes();
     initArchiveFilter();
     initHomeSearch();
-    initDanmaku();
     initMusicPlayers();
     initLivePhotoCards();
     initMusicCardPlayers();
@@ -116,33 +70,15 @@ document.addEventListener("DOMContentLoaded", function() {
     initVoiceMessages();
 });
 
-// 页面跳转前，先把 Artalk 评论实例给销毁掉，省得占内存
-document.addEventListener("pjax:send", function() {
-    artalkInstances.forEach(inst => {
-        if (inst && typeof inst.destroy === 'function') {
-            inst.destroy();
-        }
-    });
-    artalkInstances = [];
-    document.querySelectorAll('.twikoo-comments-area').forEach(el => {
-        el.innerHTML = '';
-        delete el.dataset.twikooInit;
-    });
-});
-
 // 页面加载完了（包括 PJAX 跳完后），重新初始化一波
 document.addEventListener("pjax:complete", function() {
     initMoments();
-    initArtalk();
-    initTwikoo();
     initLightbox();
     initMenu();
     initThemeToggle();
     initHeaderMedia();
-    initLivePhotoShortcodes();
     initArchiveFilter();
     initHomeSearch();
-    initDanmaku();
     initLivePhotoCards();
     initMotionPhotos();
     initVideoPlayers();
@@ -199,27 +135,6 @@ function initMenu() {
     });
 }
 
-function initTwikoo() {
-    const containers = document.querySelectorAll('.twikoo-comments-area');
-    if (!containers.length || !window.amigoConfig) return;
-    if (window.amigoConfig.commentMode !== 'twikoo') return;
-
-    const envId = window.amigoConfig.twikooEnvId;
-    if (!envId || !window.twikoo || typeof window.twikoo.init !== 'function') return;
-
-    containers.forEach(el => {
-        if (el.dataset.twikooInit) return;
-        el.dataset.twikooInit = '1';
-
-        const path = el.dataset.pageKey || location.pathname;
-        const config = { envId, el, path };
-        if (window.amigoConfig.twikooLang) config.lang = window.amigoConfig.twikooLang;
-
-        el.innerHTML = '';
-        window.twikoo.init(config);
-    });
-}
-
 /* ==========================================================================
    主题管理（深色/浅色模式）
    ========================================================================== */
@@ -267,22 +182,6 @@ function toggleTheme() {
         if (typeof Qmsg !== 'undefined') Qmsg.success('切到深色模式啦');
     }
 
-    // 评论框也得跟着变色
-    artalkInstances.forEach(inst => {
-        if (inst && typeof inst.setDarkMode === 'function') {
-            inst.setDarkMode(targetDark);
-        }
-    });
-
-    // 如果用了 Giscus 评论，也给它发个消息改主题
-    const giscusFrame = document.querySelector('iframe.giscus-frame');
-    if (giscusFrame) {
-        const theme = targetDark ? 'dark' : 'light';
-        giscusFrame.contentWindow.postMessage(
-            { giscus: { setConfig: { theme: theme } } },
-            'https://giscus.app'
-        );
-    }
 }
 
 // 点击头像就能切换主题，挺方便的
@@ -523,775 +422,6 @@ function initArchiveFilter() {
     }
 }
 
-function initArtalk() {
-    const containers = document.querySelectorAll('.moment-comments-area');
-    if (!containers.length || !window.amigoConfig) return;
-
-    containers.forEach(el => {
-        // 别重复初始化了
-        if (el.dataset.artalkInit) return;
-
-        const pageKey = el.dataset.pageKey;
-        if (!pageKey) return;
-
-        // 看看是首页列表（只读风格）还是详情页（完整交互）
-        const isFeed = el.classList.contains('feed-comments');
-
-        try {
-            let ArtalkConstructor = window.Artalk;
-            if (typeof ArtalkConstructor !== 'function' && ArtalkConstructor.default) {
-                ArtalkConstructor = ArtalkConstructor.default;
-            }
-
-            const config = {
-                el: el,
-                pageKey: pageKey,
-                pageTitle: document.title,
-                server: window.amigoConfig.artalkServer,
-                site: window.amigoConfig.artalkSite,
-                darkMode: document.documentElement.getAttribute('data-theme') === 'dark',
-                useBackendConf: true,
-                flatMode: true, // 朋友圈风格一律用平铺模式
-                nestMax: 1,
-                gravatar: {
-                   mirror: 'https://weavatar.com/avatar/'
-                }
-            };
-
-            // 首页列表稍微改改配置
-            if (isFeed) {
-                // 首页隐藏编辑器什么的
-            } else {
-                // 详情页保持默认
-            }
-
-            const artalk = new ArtalkConstructor(config);
-
-            artalk.on('list-loaded', (comments) => {
-                let dataList = [];
-                if (Array.isArray(comments)) {
-                    dataList = comments;
-                } else if (comments && Array.isArray(comments.data)) {
-                    dataList = comments.data;
-                }
-
-                if (window.__amigoDanmakuPush && dataList.length) {
-                    window.__amigoDanmakuPush(dataList);
-                }
-
-                // 计算点赞数并缓存
-                const likeCount = dataList.filter(c => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = c.content;
-                    const text = tempDiv.textContent.trim();
-                    const htmlContent = c.content || '';
-                    return (text === '[LIKE]' || text === '/like' || htmlContent.includes('[LIKE]'));
-                }).length;
-
-                // 缓存点赞数到 sessionStorage
-                LikesCache.set(pageKey, likeCount);
-
-                if (isFeed) {
-                    renderWeChatFeed(artalk, el, dataList);
-                } else {
-                    processWeChatStyle(el, false);
-                }
-
-                // 修改评论统计，只显示评论数量，不显示点赞数量
-                setTimeout(() => {
-                    const commentCountEl = el.querySelector('.atk-comment-count');
-                    if (commentCountEl) {
-                        const normalComments = dataList.filter(c => {
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = c.content;
-                            const text = tempDiv.textContent.trim();
-                            const htmlContent = c.content || '';
-                            return !(text === '[LIKE]' || text === '/like' || htmlContent.includes('[LIKE]'));
-                        });
-                        const countNum = commentCountEl.querySelector('.atk-comment-count-num');
-                        if (countNum) {
-                            countNum.textContent = normalComments.length;
-                        }
-                    }
-                }, 100);
-            });
-
-            // 文章详情页：初始化功能
-            if (!isFeed) {
-                // 1. 使用DOM拦截方式验证邮箱（更可靠）
-                setTimeout(() => {
-                    initEmailValidationForSingle(el);
-                }, 300);
-
-                // 2. 评论列表加载后过滤访客评论
-                artalk.on('list-loaded', (data) => {
-                    // 延迟处理，确保DOM已渲染
-                    setTimeout(() => {
-                        filterVisitorComments(el);
-                    }, 100);
-                });
-            }
-
-            artalkInstances.push(artalk);
-            el.dataset.artalkInit = "true";
-
-            // 绑定点赞按钮
-            if (isFeed) {
-                // 首页列表点赞
-                const card = el.closest('.moment-card');
-                if (card) {
-                    const likeBtn = card.querySelector('.btn-like');
-                    if (likeBtn) {
-                         likeBtn.addEventListener('click', (e) => {
-                             e.stopPropagation();
-                             e.preventDefault();
-
-                             // 点完赞把那个弹出小框关了
-                             const popover = likeBtn.closest('.action-popover');
-                             if (popover) popover.classList.remove('is-visible');
-
-                             handleLikeAction(artalk);
-                         });
-                    }
-                }
-            } else {
-                // 文章详情页点赞
-                initSingleLikeButton(artalk);
-            }
-
-        } catch (e) {
-            console.error('Artalk 初始化失败了：', e);
-        }
-    });
-}
-
-/**
- * 初始化文章详情页的点赞按钮
- */
-function initSingleLikeButton(artalkInstance) {
-    const likeBtn = document.getElementById('single-like-btn');
-    if (!likeBtn || likeBtn.dataset.likeInit) return;
-
-    likeBtn.dataset.likeInit = 'true';
-
-    likeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // 添加点赞动画效果
-        likeBtn.classList.add('liked');
-        likeBtn.querySelector('i').className = 'ri-heart-3-fill';
-
-        handleLikeAction(artalkInstance);
-
-        // 恢复按钮状态（延迟一下，让用户看到反馈）
-        setTimeout(() => {
-            likeBtn.classList.remove('liked');
-            likeBtn.querySelector('i').className = 'ri-heart-line';
-        }, 2000);
-    });
-}
-
-/**
- * 检查邮箱是否是访客邮箱（禁止评论）
- * @param {string} email - 邮箱地址
- * @returns {boolean} - true表示是访客邮箱，应该禁止
- */
-function isVisitorEmail(email) {
-    if (!email) return false;
-
-    // 检查常见的访客邮箱模式
-    const visitorPatterns = [
-        /^visitor\d+@example\.com$/i,  // visitor123@example.com
-        /^guest\d+@example\.com$/i,    // guest123@example.com
-        /^anonymous@/i,                 // anonymous@anydomain
-        /^temp@/i,                      // temp@anydomain
-        /^test@/i,                      // test@anydomain
-    ];
-
-    return visitorPatterns.some(pattern => pattern.test(email));
-}
-
-/**
- * 显示邮箱验证警告提示
- * @param {string} message - 提示信息
- */
-function showEmailWarning(message) {
-    console.log('[邮箱验证] 显示警告:', message);
-
-    // 移除已有的提示
-    const existingToast = document.querySelector('.email-warning-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    // 创建新的提示
-    const toast = document.createElement('div');
-    toast.className = 'email-warning-toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    // 显示动画
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    // 3秒后自动消失
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-/**
- * 生成随机访客名字
- * @returns {string} 路过的访客XXXX格式的名字
- */
-function generateRandomChineseName() {
-    const randomNum = Math.floor(Math.random() * 10000);
-    return '路过的访客' + String(randomNum).padStart(4, '0');
-}
-
-/**
- * 生成访客邮箱
- * @param {string} name - 昵称
- * @returns {string} 邮箱地址
- */
-function generateVisitorEmail(name) {
-    // 根据名字生成固定邮箱，确保同一访客头像一致
-    const randomNum = name.replace('路过的访客', '');
-    return `visitor${randomNum}@example.com`;
-}
-
-/**
- * 过滤访客评论，只显示真实评论
- * @param {HTMLElement} artalkEl - Artalk评论区容器元素
- */
-function filterVisitorComments(artalkEl) {
-    if (!artalkEl) return;
-
-    // 查找所有评论项
-    const commentItems = artalkEl.querySelectorAll('.atk-comment');
-
-    commentItems.forEach(item => {
-        // 查找邮箱信息（如果有显示的话）
-        const contentEl = item.querySelector('.atk-content');
-        if (!contentEl) return;
-
-        const content = contentEl.innerHTML;
-
-        // 检查是否是点赞评论（包含 [LIKE] 标记）
-        const isLike = content.includes('[LIKE]') ||
-                       content.includes('/like') ||
-                       contentEl.textContent.trim() === '[LIKE]' ||
-                       contentEl.textContent.trim() === '/like';
-
-        if (isLike) {
-            // 隐藏点赞评论（在文章详情页不显示）
-            item.style.display = 'none';
-        }
-    });
-}
-
-/**
- * 为文章详情页的Artalk评论区初始化邮箱验证（DOM拦截方式）
- * @param {HTMLElement} artalkEl - Artalk评论区容器元素
- */
-function initEmailValidationForSingle(artalkEl) {
-    if (!artalkEl || artalkEl.dataset.emailValidationInit) return;
-
-    console.log('[邮箱验证] 初始化DOM拦截方式');
-
-    // 查找发送按钮
-    const sendBtn = artalkEl.querySelector('.atk-send-btn');
-    if (!sendBtn) {
-        console.warn('[邮箱验证] 未找到发送按钮，500ms后重试');
-        setTimeout(() => initEmailValidationForSingle(artalkEl), 500);
-        return;
-    }
-
-    // 使用捕获阶段拦截点击事件
-    sendBtn.addEventListener('click', function(e) {
-        console.log('[邮箱验证] 发送按钮被点击');
-
-        // 查找邮箱输入框
-        const emailInput = artalkEl.querySelector('input.atk-email');
-        if (!emailInput) {
-            console.warn('[邮箱验证] 未找到邮箱输入框');
-            return;
-        }
-
-        const email = emailInput.value.trim();
-        console.log('[邮箱验证] 邮箱值:', email);
-
-        // 检查是否是访客邮箱
-        if (isVisitorEmail(email)) {
-            console.log('[邮箱验证] 检测到访客邮箱，阻止提交');
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-
-            showEmailWarning('访客邮箱不允许评论，请使用真实邮箱地址');
-
-            // 恢复按钮状态
-            setTimeout(() => {
-                sendBtn.disabled = false;
-                sendBtn.textContent = '发送';
-            }, 100);
-
-            return false;
-        }
-
-        console.log('[邮箱验证] 邮箱验证通过');
-    }, true); // 使用捕获阶段
-
-    artalkEl.dataset.emailValidationInit = 'true';
-    console.log('[邮箱验证] DOM拦截初始化完成');
-}
-
-
-/**
- * 获取IP归属地（中文）
- */
-async function getIPLocation() {
-    try {
-        const response = await fetch('https://www.ip9.com.cn/?source=api');
-        const data = await response.json();
-        if (data.addr) {
-            return data.addr;
-        }
-        return '';
-    } catch (e) {
-        console.warn('获取IP归属地失败:', e);
-        return '';
-    }
-}
-
-/**
- * 处理点赞动作
- * 其实就是发条内容带 [LIKE] 的评论，咱们后面再把它渲染成爱心
- */
-async function handleLikeAction(artalkInstance) {
-    // 看看用户是谁，没名字就随机分配一个真实风格的中文名字
-    let user = artalkInstance.ctx.get('user').getData();
-    let currentNick = user.nick;
-    let currentEmail = user.email;
-
-    if (!currentNick) {
-        currentNick = generateRandomChineseName();
-        currentEmail = generateVisitorEmail(currentNick);
-
-        try {
-            artalkInstance.ctx.get('user').update({
-                nick: currentNick,
-                email: currentEmail
-            });
-        } catch (e) { console.warn('更新用户信息失败了', e); }
-    }
-
-    // 获取IP归属地
-    const ipLocation = await getIPLocation();
-
-    // 下面是一堆尝试获取编辑器并提交点赞的逻辑
-    
-    // 尝试 1：直接拿编辑器
-    let editor = artalkInstance.editor;
-    
-    // 尝试 2：调方法拿
-    if (!editor && typeof artalkInstance.getEditor === 'function') {
-        editor = artalkInstance.getEditor();
-    }
-    
-    // 尝试 3：从 Context 里挖（针对 2.8.x 版本）
-    if (!editor && artalkInstance.ctx && typeof artalkInstance.ctx.get === 'function') {
-        try {
-            editor = artalkInstance.ctx.get('editor');
-        } catch (e) {
-            console.warn('从 ctx 里没挖到编辑器', e);
-        }
-    }
-
-    // 检查一下编辑器好不好使
-    if (editor && (typeof editor.getContent !== 'function' || typeof editor.setContent !== 'function')) {
-        console.warn('编辑器找到了但方法不对，当没找到处理', editor);
-        editor = null;
-    }
-    
-    // 如果真没编辑器（比如只读模式），那就直接调 API 发评论
-    if (!editor) {
-        console.warn('没找到编辑器，尝试直接调 API 点赞');
-        
-        if (typeof Qmsg !== 'undefined') Qmsg.loading('正在点赞...', { autoClose: true });
-
-        // 生成点赞内容，包含IP归属地
-        const likeContent = ipLocation
-            ? `${ipLocation}的访客觉得这个文章很赞 <span style="display:none">[LIKE]</span>`
-            : '觉得这个文章很赞 <span style="display:none">[LIKE]</span>';
-
-        const payload = {
-            nick: currentNick,
-            name: currentNick, 
-            email: currentEmail,
-            link: user.link || '',
-            content: likeContent,
-            page_key: artalkInstance.conf.pageKey,
-            page_title: artalkInstance.conf.pageTitle,
-            site_name: artalkInstance.conf.site
-        };
-
-        const onSuccess = () => {
-             if (typeof Qmsg !== 'undefined') Qmsg.success('点赞成功！');
-             // 清除缓存，让下次加载时重新获取
-             LikesCache.clear(artalkInstance.conf.pageKey);
-             artalkInstance.reload(); // 刷一下列表
-        };
-
-        const onError = (err) => {
-            console.error('点赞失败了：', err);
-            const msg = '点赞失败了：' + (err.message || err);
-            if (typeof Qmsg !== 'undefined') Qmsg.error(msg); else alert(msg);
-        };
-
-        // 先试试 Artalk 自带的 http 工具
-        try {
-            const http = artalkInstance.ctx.get('http');
-            if (http && typeof http.post === 'function') {
-                 http.post('/comments', payload).then(onSuccess).catch(err => { throw err; });
-                 return;
-            }
-        } catch (e) {
-             console.warn('Artalk 内部 API 用不了，换原生 fetch 试试', e);
-        }
-
-        // 原生 fetch 兜底
-        try {
-            const serverUrl = artalkInstance.conf.server.replace(/\/$/, '');
-            const apiUrl = `${serverUrl}/api/v2/comments`; 
-            const headers = { 'Content-Type': 'application/json' };
-            if (user.token) headers['Authorization'] = `Bearer ${user.token}`;
-
-            fetch(apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(payload) })
-            .then(res => { if (!res.ok) return res.json().then(e => { throw new Error(e.msg || '未知错误') }); return res.json(); })
-            .then(onSuccess)
-            .catch(onError);
-            return;
-        } catch (e) { onError(e); }
-
-        return;
-    }
-
-    // 有编辑器的话就简单了，填内容，提交！
-    const originalContent = editor.getContent();
-    const likeContent = ipLocation
-        ? `${ipLocation}的访客觉得这个文章很赞 <span style="display:none">[LIKE]</span>`
-        : '觉得这个文章很赞 <span style="display:none">[LIKE]</span>';
-
-    // 清除缓存，让下次加载时重新获取
-    LikesCache.clear(artalkInstance.conf.pageKey);
-
-    editor.setContent(likeContent);
-    editor.submit();
-}
-
-/**
- * 格式化时间，搞成微信那种“刚刚”、“几分钟前”
- */
-function formatWeChatTime(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-    const minute = 60 * 1000;
-    const hour = 60 * minute;
-    const day = 24 * hour;
-
-    if (diff < minute) {
-        return '刚刚';
-    } else if (diff < hour) {
-        return Math.floor(diff / minute) + '分钟前';
-    } else if (diff < day) {
-        return Math.floor(diff / hour) + '小时前';
-    } else if (diff < 2 * day) {
-        return '昨天';
-    } else {
-        return (date.getMonth() + 1) + '月' + date.getDate() + '日';
-    }
-}
-
-/**
- * 渲染微信朋友圈风格的评论列表
- * 把 Artalk 默认那套 DOM 藏起来，用我们自己生成的这套
- */
-function renderWeChatFeed(artalkInstance, container, comments) {
-    // 1. 藏起原生的列表和编辑器
-    const originalList = container.querySelector('.atk-list');
-    const originalEditor = container.querySelector('.atk-main-editor');
-    if (originalList) originalList.style.display = 'none';
-    if (originalEditor) originalEditor.style.display = 'none';
-
-    // 隐藏Artalk自带的评论统计（包含点赞数量）
-    const commentCountEl = container.querySelector('.atk-comment-count');
-    if (commentCountEl) {
-        commentCountEl.style.display = 'none';
-    }
-
-    // 2. 准备我们自己的容器
-    let customContainer = container.querySelector('.wechat-custom-render');
-    if (!customContainer) {
-        customContainer = document.createElement('div');
-        customContainer.className = 'wechat-custom-render';
-        container.appendChild(customContainer);
-    } else {
-        customContainer.innerHTML = ''; // 清空旧的
-    }
-
-    // 3. 把点赞和普通评论分出来
-    const likeNicks = [];
-    const normalComments = [];
-    const commentMap = new Map();
-
-    comments.forEach(c => {
-        commentMap.set(c.id, c.nick);
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = c.content;
-        const text = tempDiv.textContent.trim();
-        const htmlContent = c.content || '';
-
-        // 看看有没有点赞标记
-        if (text === '[LIKE]' || text === '/like' || htmlContent.includes('[LIKE]')) {
-            likeNicks.push(c.nick);
-        } else {
-            normalComments.push(c);
-        }
-    });
-
-    // 4. 渲染”赞”那一部分
-    let likesArea = container.querySelector('.moment-likes');
-
-    if (!likesArea) {
-        likesArea = document.createElement('div');
-        likesArea.className = 'moment-likes';
-
-        const icon = document.createElement('i');
-        icon.className = 'ri-heart-line';
-        likesArea.appendChild(icon);
-
-        const listSpan = document.createElement('span');
-        listSpan.className = 'moment-likes-list';
-        likesArea.appendChild(listSpan);
-
-        container.prepend(likesArea);
-    }
-
-    const likesListSpan = likesArea.querySelector('.moment-likes-list');
-
-    // 优先使用缓存的点赞数，如果没有则使用实时计算的
-    const pageKey = artalkInstance.conf.pageKey;
-    const cachedCount = LikesCache.get(pageKey);
-    const likeCount = cachedCount !== null ? cachedCount : likeNicks.length;
-
-    const hasLikes = likeCount > 0;
-    const hasComments = normalComments.length > 0;
-    const hasActivity = hasLikes || hasComments;
-
-    if (hasLikes) {
-        likesArea.style.display = 'flex';
-        likesListSpan.textContent = likeCount + ' 人觉得很赞';
-
-        if (!hasComments) {
-            likesArea.style.borderBottom = 'none';
-            likesArea.style.marginBottom = '0';
-            likesArea.style.paddingBottom = '0';
-        } else {
-            likesArea.style.borderBottom = '';
-            likesArea.style.marginBottom = '';
-            likesArea.style.paddingBottom = '';
-        }
-    } else {
-        likesArea.style.display = 'none';
-    }
-
-    // 5. 渲染真正的评论
-    if (normalComments.length > 0) {
-        const listUl = document.createElement('div');
-        listUl.className = 'wechat-comments-list';
-
-        normalComments.forEach(c => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'wechat-comment-item';
-            
-            let replyTargetNick = null;
-            const tempC = document.createElement('div');
-            tempC.innerHTML = c.content;
-            
-            // 看看是不是回复某人的
-            const replyAtNode = tempC.querySelector('.atk-reply-at');
-            if (replyAtNode) {
-                let rText = replyAtNode.textContent.trim();
-                // Remove '@' if present
-                if (rText.startsWith('@')) {
-                    rText = rText.substring(1);
-                }
-                replyTargetNick = rText;
-                
-                // CRITICAL: Remove the node from content so it doesn't duplicate
-                replyAtNode.remove();
-            }
-
-            // Priority 1: Direct field (Artalk standard)
-            if (!replyTargetNick && c.reply_nick) {
-                replyTargetNick = c.reply_nick;
-            } 
-            // Priority 2: Nested object (Artalk 2.x some versions)
-            else if (!replyTargetNick && c.reply_user && c.reply_user.nick) {
-                replyTargetNick = c.reply_user.nick;
-            }
-            // Priority 3: UA data (sometimes stored here)
-            else if (!replyTargetNick && c.ua && c.ua.reply_nick) {
-                replyTargetNick = c.ua.reply_nick;
-            }
-            // Priority 4: Look up by rid/pid
-            else if (!replyTargetNick && c.rid && c.rid !== 0) {
-                // Try to find the parent comment
-                // If pid exists, use it (direct parent), otherwise use rid (root)
-                const targetId = c.pid || c.rid;
-                if (commentMap.has(targetId)) {
-                    replyTargetNick = commentMap.get(targetId);
-                }
-            }
-
-            // 主体部分（昵称 + 回复对象 + 内容）放在一块，方便右侧放时间
-            const mainSpan = document.createElement('span');
-            mainSpan.className = 'wechat-main';
-
-            // Nickname
-            const nickSpan = document.createElement('span');
-            nickSpan.className = 'wechat-nick';
-            nickSpan.textContent = c.nick;
-            mainSpan.appendChild(nickSpan);
-
-            // Reply Logic
-            if (replyTargetNick) {
-                const replyText = document.createTextNode('回复');
-                const targetSpan = document.createElement('span');
-                targetSpan.className = 'wechat-nick';
-                targetSpan.textContent = replyTargetNick;
-                
-                mainSpan.appendChild(replyText);
-                mainSpan.appendChild(targetSpan);
-            }
-
-            // Colon (Always present before content)
-            const colonSpan = document.createElement('span');
-            colonSpan.className = 'wechat-colon';
-            colonSpan.textContent = ' : ';
-            mainSpan.appendChild(colonSpan);
-
-            // Content
-            const contentSpan = document.createElement('span');
-            contentSpan.className = 'wechat-content';
-            
-            // Unwrap <p>
-            const ps = tempC.querySelectorAll('p');
-            if (ps.length > 0) {
-               ps.forEach(p => {
-                   const s = document.createElement('span');
-                   s.innerHTML = p.innerHTML;
-                   p.replaceWith(s);
-               });
-            }
-            contentSpan.innerHTML = tempC.innerHTML;
-            mainSpan.appendChild(contentSpan);
-
-            // 时间
-            let timeSpan = null;
-            if (c.date) {
-                timeSpan = document.createElement('span');
-                timeSpan.className = 'wechat-time';
-                timeSpan.textContent = formatWeChatTime(c.date);
-            }
-
-            itemDiv.appendChild(mainSpan);
-            if (timeSpan) itemDiv.appendChild(timeSpan);
-            
-            listUl.appendChild(itemDiv);
-        });
-
-        customContainer.appendChild(listUl);
-    }
-
-    // 6. Handle Container Visibility (Empty State)
-    if (!hasLikes && !hasComments) {
-        container.style.display = 'none';
-    } else {
-        // Show with animation (was display:none in CSS)
-        container.style.display = 'block';
-        container.style.animation = 'fadeIn 0.3s ease-out';
-    }
-}
-
-
-/**
- * Process Artalk list to match WeChat Official Account style (Single Page)
- * Mainly filters out "Like" comments which shouldn't appear in the article comment list.
- */
-function processWeChatStyle(container, isFeed) {
-    if (isFeed) return; // Feed uses renderWeChatFeed instead
-
-    // 先隐藏整个列表，避免闪烁
-    const list = container.querySelector('.atk-list');
-    if (list) {
-        list.style.visibility = 'hidden';
-    }
-
-    // 使用 MutationObserver 监听 DOM 变化，过滤点赞评论
-    const filterLikes = () => {
-        const items = container.querySelectorAll('.atk-item');
-        let hasVisibleItems = false;
-
-        items.forEach(item => {
-            // 如果已经处理过，跳过
-            if (item.dataset.likeFiltered) return;
-
-            const contentEl = item.querySelector('.atk-content');
-            if (!contentEl) return;
-
-            const htmlContent = contentEl.innerHTML;
-            const textContent = contentEl.textContent.trim();
-
-            // Check for [LIKE] marker in text or hidden span
-            const isLike = textContent === '[LIKE]' ||
-                           textContent === '/like' ||
-                           htmlContent.includes('[LIKE]');
-
-            if (isLike) {
-                item.style.display = 'none';
-                item.dataset.likeFiltered = 'true';
-            } else {
-                hasVisibleItems = true;
-                item.dataset.likeFiltered = 'true';
-            }
-        });
-
-        // 显示列表（过滤完成后）
-        if (list) {
-            list.style.visibility = 'visible';
-        }
-
-        return hasVisibleItems;
-    };
-
-    // 立即尝试过滤
-    const hasItems = filterLikes();
-
-    // 如果没有找到项目，设置一个短延迟再试一次（等待 Artalk 渲染）
-    if (!hasItems) {
-        setTimeout(filterLikes, 100);
-    }
-}
-
-// Old function replaced by processWeChatStyle
-// function formatArtalkReplies(container, isFeed) { ... }
-
 function initHeaderMedia() {
     var header = document.querySelector('.moments-header');
     if (!header || !window.amigoConfig) return;
@@ -1395,307 +525,6 @@ function initHeaderMedia() {
         }, { passive: true });
         return;
     }
-}
-
-function initLivePhotoShortcodes() {
-    document.querySelectorAll('.live-photo').forEach(function(livePhoto) {
-        if (livePhoto.__liveBound) return;
-        livePhoto.__liveBound = true;
-
-        var video = livePhoto.querySelector('video.live-photo-video') || livePhoto.querySelector('video');
-        var posterImg = livePhoto.querySelector('img.live-photo-poster') || livePhoto.querySelector('img');
-        var toggleBtn = livePhoto.querySelector('.live-photo-toggle-btn');
-        var muteBtn = livePhoto.querySelector('.live-photo-mute-btn');
-        var warning = livePhoto.querySelector('.warning');
-
-        if (!video || !toggleBtn || !muteBtn) return;
-
-        var HOVER_DELAY = 500;
-        var hoverTimer = null;
-        var isManuallyControlled = toggleBtn.getAttribute('data-state') === 'live';
-        var isLoaded = false;
-
-        function setWarning(text) {
-            if (!warning) return;
-            warning.textContent = text || '';
-            if (text) warning.classList.add('show');
-            else warning.classList.remove('show');
-        }
-
-        function syncAspectFromPoster() {
-            if (!posterImg) return;
-            var w = posterImg.naturalWidth || 0;
-            var h = posterImg.naturalHeight || 0;
-            if (!w || !h) return;
-            livePhoto.style.setProperty('--live-photo-aspect', w + ' / ' + h);
-        }
-
-        if (posterImg && posterImg.complete) {
-            syncAspectFromPoster();
-        } else if (posterImg) {
-            posterImg.addEventListener('load', function() {
-                syncAspectFromPoster();
-            }, { once: true });
-        }
-
-        function ensureLoaded() {
-            if (isLoaded) return;
-            isLoaded = true;
-            var src = (video.dataset && video.dataset.src) ? video.dataset.src : '';
-            if (src && !video.getAttribute('src')) {
-                video.setAttribute('src', src);
-                video.src = src;
-            }
-            try { video.load(); } catch (e) {}
-        }
-
-        function setMuted(isMuted) {
-            video.muted = !!isMuted;
-            if (isMuted) video.setAttribute('muted', '');
-            else video.removeAttribute('muted');
-            muteBtn.setAttribute('data-muted', isMuted ? 'true' : 'false');
-        }
-
-        function getMuted() {
-            return muteBtn.getAttribute('data-muted') !== 'false';
-        }
-
-        if (!video.hasAttribute('muted')) setMuted(true);
-        else setMuted(getMuted());
-
-        function stopVideo(force) {
-            if (!force && isManuallyControlled) return;
-            if (hoverTimer) {
-                clearTimeout(hoverTimer);
-                hoverTimer = null;
-            }
-            livePhoto.classList.remove('is-playing');
-            setWarning('');
-            try { video.pause(); } catch (e) {}
-            try { video.currentTime = 0; } catch (e) {}
-        }
-
-        async function playVideo(opts) {
-            ensureLoaded();
-            setWarning('');
-
-            var wantUnmute = opts && opts.unmute === true;
-            if (wantUnmute) setMuted(false);
-            else setMuted(getMuted());
-
-            try { video.currentTime = 0; } catch (e) {}
-
-            try {
-                var p = video.play();
-                if (p && typeof p.catch === 'function') await p;
-                livePhoto.classList.add('is-playing');
-                return;
-            } catch (e) {
-                if (!video.muted) {
-                    setMuted(true);
-                    try {
-                        var p2 = video.play();
-                        if (p2 && typeof p2.catch === 'function') await p2;
-                        livePhoto.classList.add('is-playing');
-                        return;
-                    } catch (e2) {}
-                }
-
-                if (e && e.name === 'AbortError') return;
-                if (e && e.name === 'NotAllowedError') {
-                    setWarning('浏览器未允许视频自动播放权限，无法播放实况照片。');
-                } else if (e && e.name === 'NotSupportedError') {
-                    setWarning('视频未加载完成或浏览器不支持播放此视频格式。');
-                } else {
-                    setWarning('其它错误：' + e);
-                }
-            }
-        }
-
-        function scheduleHoverPlay() {
-            if (isManuallyControlled) return;
-            if (hoverTimer) clearTimeout(hoverTimer);
-            hoverTimer = setTimeout(function() {
-                playVideo({ unmute: false });
-            }, HOVER_DELAY);
-        }
-
-        livePhoto.addEventListener('mouseenter', function() {
-            scheduleHoverPlay();
-        });
-        livePhoto.addEventListener('mouseleave', function() {
-            stopVideo(false);
-        });
-
-        livePhoto.addEventListener('touchstart', function() {
-            scheduleHoverPlay();
-        }, { passive: true });
-        livePhoto.addEventListener('touchend', function() {
-            stopVideo(false);
-        }, { passive: true });
-        livePhoto.addEventListener('touchcancel', function() {
-            stopVideo(false);
-        }, { passive: true });
-
-        toggleBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            isManuallyControlled = !isManuallyControlled;
-            toggleBtn.setAttribute('data-state', isManuallyControlled ? 'live' : 'static');
-
-            if (isManuallyControlled) {
-                playVideo({ unmute: false });
-            } else {
-                stopVideo(true);
-            }
-        });
-
-        muteBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            var nextMuted = !getMuted();
-            setMuted(nextMuted);
-
-            if (!nextMuted && (isManuallyControlled || livePhoto.classList.contains('is-playing'))) {
-                playVideo({ unmute: true });
-            }
-        });
-
-        video.addEventListener('pause', function() {
-            if (!isManuallyControlled) {
-                livePhoto.classList.remove('is-playing');
-            }
-        });
-        video.addEventListener('ended', function() {
-            if (!isManuallyControlled) {
-                stopVideo(true);
-            }
-        });
-    });
-}
-
-function initDanmaku() {
-    const root = document.getElementById('danmaku-root');
-    if (!root || !window.amigoConfig) return;
-    if (window.__amigoDanmakuInit) return;
-
-    const cfg = window.amigoConfig;
-    if (cfg.commentMode !== 'artalk' || cfg.enableDanmaku === false) return;
-
-    window.__amigoDanmakuInit = true;
-
-    const trackCount = 6;
-    const tracks = [];
-    for (let i = 0; i < trackCount; i++) {
-        const trackEl = document.createElement('div');
-        trackEl.className = 'danmaku-track';
-        root.appendChild(trackEl);
-        tracks.push({ el: trackEl, busy: false });
-    }
-
-    let queue = [];
-    let lastFire = 0;
-    let gapMs = 1000;
-
-    function cleanContent(html) {
-        if (!html) return '';
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        const replyEls = temp.querySelectorAll('.atk-reply-at');
-        replyEls.forEach(function(node) {
-            node.remove();
-        });
-        let text = temp.textContent || '';
-        text = text.replace(/\[LIKE\]/gi, '').replace(/\/like/gi, '');
-        text = text.replace(/\s+/g, ' ');
-        return text.trim();
-    }
-
-    function normalizeItem(raw) {
-        if (!raw) return null;
-        const html = raw.content || raw.content_html || raw.comment || '';
-        const text = cleanContent(html);
-        if (!text) return null;
-        const nick = raw.nick || raw.name || '游客';
-        const date = raw.date || raw.created_at || raw.createdAt || '';
-        return { nick: nick, text: text, date: date };
-    }
-
-    window.__amigoDanmakuPush = function(list) {
-        if (!Array.isArray(list)) return;
-        list.forEach(function(raw) {
-            const item = normalizeItem(raw);
-            if (!item) return;
-            queue.push(item);
-            if (queue.length > 200) {
-                queue.splice(0, queue.length - 200);
-            }
-        });
-    };
-
-    function pushToTrack(track, item) {
-        const el = document.createElement('div');
-        el.className = 'danmaku-item';
-
-        const nickSpan = document.createElement('span');
-        nickSpan.className = 'danmaku-nick';
-        nickSpan.textContent = item.nick;
-
-        const sepSpan = document.createElement('span');
-        sepSpan.className = 'danmaku-sep';
-        sepSpan.textContent = ':';
-
-        const textSpan = document.createElement('span');
-        textSpan.className = 'danmaku-text';
-        textSpan.textContent = item.text;
-
-        el.appendChild(nickSpan);
-        el.appendChild(sepSpan);
-        el.appendChild(textSpan);
-
-        track.el.appendChild(el);
-
-        const duration = 12 + Math.random() * 6;
-        el.style.animation = 'danmaku-move ' + duration + 's linear forwards';
-
-        setTimeout(function() {
-            if (track.el.contains(el)) {
-                track.el.removeChild(el);
-            }
-            track.busy = false;
-        }, duration * 1000 + 200);
-    }
-
-    function loop() {
-        if (document.hidden) {
-            setTimeout(loop, 2000);
-            return;
-        }
-
-        if (queue.length) {
-            const now = Date.now();
-            if (now - lastFire >= gapMs) {
-                const available = tracks.find(t => !t.busy);
-                if (available) {
-                    const rootHeight = root.clientHeight || 200;
-                    const maxTop = Math.max(0, rootHeight - 28);
-                    const top = Math.random() * maxTop;
-                    available.el.style.top = top + 'px';
-                    const item = queue.shift();
-                    available.busy = true;
-                    pushToTrack(available, item);
-                    lastFire = now;
-                    gapMs = 900 + Math.floor(Math.random() * 600);
-                }
-            }
-        }
-
-        setTimeout(loop, 300);
-    }
-
-    setTimeout(loop, 1000);
 }
 
 /**
@@ -2259,6 +1088,8 @@ class MotionPhoto {
         this.isPlaying = false;
         this.isMuted = true;
         this.isLocked = false;
+        this.playToken = 0;
+        this.resetTimer = null;
 
         this.hoverDelay = parseInt(container.dataset.hoverDelay) || 500;
         this.hoverTimer = null;
@@ -2275,14 +1106,35 @@ class MotionPhoto {
         const dataSrc = this.video.dataset.src;
         if (dataSrc && !this.video.src) {
             this.video.src = dataSrc;
-            this.videoLoaded = true;
+            try { this.video.load(); } catch (e) {}
         }
+        this.video.preload = 'auto';
+        this.videoLoaded = true;
+    }
+
+    waitUntilReady() {
+        if (!this.video || this.video.readyState >= 2) return Promise.resolve();
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = () => {
+                if (done) return;
+                done = true;
+                this.video.removeEventListener('canplay', finish);
+                this.video.removeEventListener('loadeddata', finish);
+                resolve();
+            };
+            this.video.addEventListener('canplay', finish, { once: true });
+            this.video.addEventListener('loadeddata', finish, { once: true });
+            setTimeout(finish, 700);
+        });
     }
 
     bindEvents() {
         if (this.isSingleView) {
             this.container.addEventListener('mouseenter', () => {
                 if (this.isLocked) return;
+                this.loadVideo();
+                clearTimeout(this.hoverTimer);
                 this.hoverTimer = setTimeout(() => {
                     this.play();
                 }, this.hoverDelay);
@@ -2299,6 +1151,7 @@ class MotionPhoto {
                 if (this.isLocked) return;
                 clearTimeout(this.hoverTimer);
                 this.touchActivated = true;
+                this.loadVideo();
                 this.play();
             }, { passive: true });
 
@@ -2332,21 +1185,23 @@ class MotionPhoto {
 
         // 视频事件
         if (this.video) {
+            this.video.muted = this.isMuted;
+            this.video.playsInline = true;
+            this.video.setAttribute('playsinline', '');
+
             this.video.addEventListener('play', () => {
                 this.isPlaying = true;
-                this.container.classList.add('is-playing');
                 this.syncControls();
             });
             this.video.addEventListener('pause', () => {
                 this.isPlaying = false;
-                this.container.classList.remove('is-playing');
                 this.syncControls();
             });
             this.video.addEventListener('ended', () => {
                 this.isPlaying = false;
-                this.container.classList.remove('is-playing');
                 if (!this.isLocked) {
                     this.video.currentTime = 0;
+                    this.container.classList.remove('is-playing');
                 }
                 this.syncControls();
             });
@@ -2365,17 +1220,38 @@ class MotionPhoto {
         }
     }
 
-    play() {
+    async play() {
         if (!this.video || this.isPlaying) return;
+        const token = ++this.playToken;
+        clearTimeout(this.resetTimer);
         this.loadVideo();
-        this.video.currentTime = 0;
-        this.video.play().catch(() => {});
+
+        try {
+            if (this.video.currentTime > 0.08) this.video.currentTime = 0;
+        } catch (e) {}
+
+        await this.waitUntilReady();
+        if (token !== this.playToken) return;
+
+        try {
+            await this.video.play();
+            if (token !== this.playToken) return;
+            requestAnimationFrame(() => {
+                if (token === this.playToken) this.container.classList.add('is-playing');
+            });
+        } catch (e) {}
     }
 
     pause() {
         if (!this.video || !this.isPlaying) return;
+        this.playToken++;
+        clearTimeout(this.hoverTimer);
+        clearTimeout(this.resetTimer);
+        this.container.classList.remove('is-playing');
         this.video.pause();
-        this.video.currentTime = 0;
+        this.resetTimer = setTimeout(() => {
+            try { this.video.currentTime = 0; } catch (e) {}
+        }, 180);
     }
 
     toggleMute() {
@@ -2410,7 +1286,6 @@ function initMotionPhotos() {
             container.dataset.motionInit = 'true';
             if (isSingleView) {
                 mp.loadVideo();
-                setTimeout(() => mp.play(), 400);
             }
         }
     });

@@ -10,20 +10,8 @@
     <link rel="icon" href="{{ "favicon.ico" | relURL }}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{ "images/avatar.jpg" | relURL }}">
 
-    {{- /* Twikoo 官方 CSS 提前加载，确保后续我们的 bundle 可以覆盖 */ -}}
-    {{- if and (eq .Site.Params.commentMode "twikoo") .Site.Params.twikooEnvId -}}
-        {{- $twikooCss := resources.Get "lib/twikoo/twikoo.min.css" | fingerprint -}}
-        {{- if $twikooCss -}}
-            <link rel="stylesheet" href="{{ $twikooCss.RelPermalink }}" integrity="{{ $twikooCss.Data.Integrity }}">
-        {{- end -}}
-    {{- end -}}
-
     {{- /* 把所有 CSS 打包到一起 */ -}}
     {{- $styles := slice (resources.Get "css/remixicon.css") (resources.Get "css/message.min.css") (resources.Get "css/style.css") -}}
-    
-    {{- if and (eq .Site.Params.commentMode "artalk") .Site.Params.artalkServer -}}
-        {{- $styles = $styles | append (resources.Get "lib/artalk/Artalk.css") -}}
-    {{- end -}}
 
     {{- $bundleCss := $styles | resources.Concat "css/bundle.css" | minify | fingerprint -}}
     <link rel="stylesheet" href="{{ $bundleCss.RelPermalink }}" integrity="{{ $bundleCss.Data.Integrity }}">
@@ -39,10 +27,6 @@
         {{- $scripts = $scripts | append (resources.Get "js/pjax.min.js") -}}
     {{- end -}}
 
-    {{- if and (eq .Site.Params.commentMode "artalk") .Site.Params.artalkServer -}}
-        {{- $scripts = $scripts | append (resources.Get "lib/artalk/Artalk.js") -}}
-    {{- end -}}
-    
     {{- $scripts = $scripts | append (resources.Get "js/init.js") -}}
 
     {{- $bundleJs := $scripts | resources.Concat "js/bundle.js" | minify | fingerprint -}}
@@ -60,12 +44,6 @@
         })();
         // 全局配置，JS 脚本里会用到
         window.amigoConfig = {
-            artalkServer: "{{ .Site.Params.artalkServer }}",
-            artalkSite: "{{ .Site.Params.artalkSite }}",
-            commentMode: "{{ .Site.Params.commentMode }}",
-            twikooEnvId: "{{ .Site.Params.twikooEnvId }}",
-            twikooLang: "{{ .Site.Params.twikooLang | default "zh-CN" }}",
-            enableDanmaku: {{ if eq .Site.Params.enableDanmaku false }}false{{ else }}true{{ end }},
             headerMediaList: {{ with .Site.Params.headerMediaList }}{{ . | jsonify }}{{ else }}[]{{ end }},
             headerMedia: "{{ .Site.Params.headerMedia | default .Site.Params.cover }}"
         };
@@ -84,13 +62,6 @@
             {{- end -}}
         }
     </style>
-
-    {{- if and (eq .Site.Params.commentMode "twikoo") .Site.Params.twikooEnvId -}}
-        {{- $twikooJs := resources.Get "lib/twikoo/twikoo.min.js" | fingerprint -}}
-        {{- if $twikooJs -}}
-            <script defer src="{{ $twikooJs.RelPermalink }}" integrity="{{ $twikooJs.Data.Integrity }}"></script>
-        {{- end -}}
-    {{- end -}}
 
     <script defer src="{{ $bundleJs.RelPermalink }}" integrity="{{ $bundleJs.Data.Integrity }}"></script>
 </head>

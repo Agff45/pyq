@@ -21,9 +21,6 @@
                 </h1>
             </div>
         </div>
-        {{ if and .Site.Params.artalkServer (eq .Site.Params.commentMode "artalk") (ne .Site.Params.enableDanmaku false) }}
-        <div id="danmaku-root" class="danmaku-root"></div>
-        {{ end }}
     </header>
     
     {{/* 个人签名（放在封面图下面） */}}
@@ -45,12 +42,6 @@
         {{ range sort $items "key" }}
         {{ with .page }}
         {{ $isAd := or .Params.isAd (eq .Layout "ad") (eq .Params.layout "ad") }}
-        {{ $feedShowComments := false }}
-        {{ if $isAd }}
-            {{ if eq .Params.comments true }}{{ $feedShowComments = true }}{{ end }}
-        {{ else }}
-            {{ if ne .Params.comments false }}{{ $feedShowComments = true }}{{ end }}
-        {{ end }}
         {{ $isPinned := and (not $isAd) (gt .Weight 0) }}
 
         {{/* 判断是否为长文章 */}}
@@ -194,7 +185,7 @@
                         {{ end }}
                     </div>
 
-                    {{/* 右侧的操作菜单（点赞/评论） */}}
+                    {{/* 右侧的操作菜单 */}}
                     <div class="footer-actions">
                         {{ if $isPinned }}
                         <span class="moment-pin-badge" title="置顶">
@@ -204,41 +195,12 @@
                         {{ end }}
 
                         <div class="action-wrapper">
-                            {{ if and (eq .Site.Params.commentMode "artalk") .Site.Params.artalkServer $feedShowComments }}
-                            <button class="action-toggle" aria-label="Toggle Actions">
-                                <i class="ri-more-fill"></i>
-                            </button>
-
-                            {{/* 弹出的小黑框 */}}
-                            <div class="action-popover">
-                                <button class="popover-btn btn-like">
-                                    <i class="ri-heart-line"></i>
-                                    赞
-                                </button>
-                                <span class="popover-divider"></span>
-                                <a href="{{ .RelPermalink }}#comments-single" class="popover-btn">
-                                    <i class="ri-chat-3-line"></i>
-                                    评论
-                                </a>
-                            </div>
-                            {{ else }}
                             <a href="{{ .RelPermalink }}" class="action-link-more" title="查看详情">
                                 <i class="ri-more-fill"></i>
                             </a>
-                            {{ end }}
                         </div>
                     </div>
                 </footer>
-
-                {{/* 首页评论展示区 - 朋友圈风格（只读） */}}
-                {{ if and (eq .Site.Params.commentMode "artalk") .Site.Params.artalkServer $feedShowComments }}
-                <div class="moment-comments-area feed-comments" id="comments-{{ .File.UniqueID }}" data-page-key="{{ .Permalink }}">
-                    <div class="moment-likes">
-                        <i class="ri-heart-3-line"></i>
-                        <span class="moment-likes-list"></span>
-                    </div>
-                </div>
-                {{ end }}
             </div>
         </article>
         {{ end }}

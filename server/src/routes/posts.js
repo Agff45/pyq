@@ -45,7 +45,7 @@ router.post('/api/posts', authMiddleware, (req, res) => {
   try {
     const {
       title, content, author, location, tags,
-      images, cover, isLongArticle, weight, comments, draft, date,
+      images, cover, isLongArticle, weight, draft, date,
     } = req.body;
 
     if (!content && !title) {
@@ -54,7 +54,7 @@ router.post('/api/posts', authMiddleware, (req, res) => {
 
     const post = postService.createPost({
       title, content, author, location, tags,
-      images, cover, isLongArticle, weight, comments, draft, date,
+      images, cover, isLongArticle, weight, draft, date,
     });
 
     res.json({ code: 0, message: '发布成功', data: post });

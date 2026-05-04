@@ -79,10 +79,6 @@
               <input type="checkbox" v-model="meta.isLongArticle" />
               <span>长文章模式（首页显示为卡片）</span>
             </label>
-            <label class="check-item">
-              <input type="checkbox" v-model="meta.comments" checked />
-              <span>允许评论</span>
-            </label>
           </div>
 
           <div v-if="meta.isLongArticle" class="meta-row meta-cover-row">
@@ -211,7 +207,7 @@ const contentText = ref('');
 const galleryImages = ref([]);
 const meta = reactive({
   title: '', author: '', location: '',
-  isLongArticle: false, cover: '', comments: true, draft: false,
+  isLongArticle: false, cover: '', draft: false,
 });
 const tagsInput = ref('');
 const saving = ref(false);
@@ -422,7 +418,6 @@ async function doSave(draft) {
     images: galleryImages.value.length ? galleryImages.value.map((i) => i.path) : undefined,
     isLongArticle: meta.isLongArticle || undefined,
     cover: meta.cover || undefined,
-    comments: meta.comments,
     draft,
   };
 
@@ -473,7 +468,6 @@ onMounted(async () => {
       meta.location = d.frontMatter.location || '';
       meta.isLongArticle = !!d.frontMatter.isLongArticle;
       meta.cover = d.frontMatter.cover || '';
-      meta.comments = d.frontMatter.comments !== false;
       meta.draft = !!d.frontMatter.draft;
       tagsInput.value = (d.frontMatter.tags || []).join(', ');
       if (d.frontMatter.images) {

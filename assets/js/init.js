@@ -103,12 +103,5 @@ document.addEventListener("DOMContentLoaded", function() {
     document.addEventListener("pjax:complete", function() {
         // 稍微等一下下，确保 DOM 真的刷好了
         setTimeout(initHelpers, 50);
-        
-        // 如果有 Artalk 评论，看看需不需要重装
-        if (window.amigoConfig && window.amigoConfig.artalkServer && window.Artalk) {
-             if (document.querySelector('#comments-single')) {
-                 // 这里具体的重装逻辑通常在 main.js 里 PJAX 监听里搞定了
-             }
-        }
     });
 });
