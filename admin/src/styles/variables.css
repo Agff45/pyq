@@ -1,10 +1,10 @@
 :root {
   --font-family: 'ZQL', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
-  --bg-body: #f2f2f2;
-  --bg-card: #ffffff;
-  --bg-hover: rgba(0, 0, 0, 0.05);
-  --bg-input: #f7f7f7;
+  --bg-body: #f6f8fb;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-hover: rgba(7, 193, 96, 0.08);
+  --bg-input: rgba(248, 250, 252, 0.9);
 
   --text-main: #333333;
   --text-desc: #777777;
@@ -13,28 +13,32 @@
   --text-white: #ffffff;
 
   --theme-color: #07c160;
+  --theme-soft: rgba(7, 193, 96, 0.12);
+  --theme-shadow: rgba(7, 193, 96, 0.24);
   --danger-color: #fa5151;
-  --border-main: #eeeeee;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-popover: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --border-main: rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 14px 40px rgba(15, 23, 42, 0.06);
+  --shadow-popover: 0 24px 70px rgba(15, 23, 42, 0.18);
 
   --max-width: 680px;
-  --radius: 8px;
+  --radius: 12px;
 }
 
 [data-theme="dark"] {
-  --bg-body: #111111;
-  --bg-card: #1e1e1e;
-  --bg-hover: rgba(255, 255, 255, 0.1);
-  --bg-input: #222222;
+  --bg-body: #0b1014;
+  --bg-card: rgba(22, 27, 34, 0.9);
+  --bg-hover: rgba(7, 193, 96, 0.12);
+  --bg-input: rgba(14, 20, 27, 0.86);
 
   --text-main: #e5e5e5;
   --text-desc: #999999;
   --text-muted: #777777;
 
-  --border-main: #333333;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-popover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --theme-soft: rgba(7, 193, 96, 0.16);
+  --theme-shadow: rgba(7, 193, 96, 0.2);
+  --border-main: rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 16px 48px rgba(0, 0, 0, 0.34);
+  --shadow-popover: 0 24px 70px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -48,8 +52,25 @@ body {
   background: var(--bg-body);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 input, textarea, button {
   font-family: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--theme-soft);
+  outline-offset: 2px;
 }
