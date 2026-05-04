@@ -2279,24 +2279,28 @@ function initVoiceMessages() {
    ========================================================================== */
 
 class MotionPhoto {
-    constructor(container) {
+    constructor(container, isSingleView) {
         this.container = container;
         this.video = container.querySelector('.live-photo-video');
         this.toggleBtn = container.querySelector('.live-photo-toggle-btn');
         this.muteBtn = container.querySelector('.live-photo-mute-btn');
+        this.isSingleView = isSingleView || false;
 
         this.isPlaying = false;
         this.isMuted = true;
-        this.isLocked = false; // 手动锁定播放状态
+        this.isLocked = false;
 
         this.hoverDelay = parseInt(container.dataset.hoverDelay) || 500;
         this.hoverTimer = null;
 
-        // 懒加载视频
         this.videoLoaded = false;
-        this.loadVideo();
 
-        this.bindEvents();
+        // 列表页不自动加载视频（节省流量），只做外观初始化
+        // 详情页才加载并绑定事件
+        if (this.isSingleView) {
+            this.loadVideo();
+            this.bindEvents();
+        }
     }
 
     loadVideo() {
@@ -2397,11 +2401,17 @@ class MotionPhoto {
 }
 
 function initMotionPhotos() {
+    const isSingleView = document.querySelector('.moments-feed.single-view') !== null;
     const containers = document.querySelectorAll('.live-photo-container');
     containers.forEach(container => {
         if (!container.dataset.motionInit) {
-            new MotionPhoto(container);
+            const mp = new MotionPhoto(container, isSingleView);
             container.dataset.motionInit = 'true';
+            if (isSingleView) {
+                // 详情页：进入后立即加载并播放
+                mp.loadVideo();
+                setTimeout(() => mp.play(), 400);
+            }
         }
     });
 }

@@ -3966,11 +3966,56 @@ body {
     transition: box-shadow 0.22s ease;
 }
 
-/* 文章内页：限制实况照片大小，和首页保持一致 */
+/* ===== 朋友圈列表页：实况照片看起来就是一张普通图片 ===== */
+.moments-feed:not(.single-view) .live-photo-container {
+    cursor: default;
+    box-shadow: none;
+    border-radius: 6px;
+    background-color: transparent;
+}
+
+.moments-feed:not(.single-view) .live-photo-container .live-photo-video {
+    display: none !important;
+}
+
+.moments-feed:not(.single-view) .live-photo-container .live-photo-controls-group {
+    display: none !important;
+}
+
+.moments-feed:not(.single-view) .live-photo-container .live-photo-poster {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+}
+
+/* 文章内页：恢复播放功能 */
+.single-view .live-photo-container {
+    cursor: pointer;
+    box-shadow: var(--motion-photo-shadow-idle);
+    border-radius: 10px;
+    background-color: var(--bg-code, #f5f5f5);
+}
+
+.single-view .live-photo-container .live-photo-video {
+    display: block !important;
+}
+
+.single-view .live-photo-container .live-photo-controls-group {
+    display: flex !important;
+}
+
+/* 详情页用 video 自带的 poster，隐藏 img */
+.single-view .live-photo-container .live-photo-poster {
+    display: none;
+}
+
+/* 文章内页：限制实况照片大小 */
 .single-view .article-text .live-photo-container {
     width: 68%;
     max-width: 320px;
-    margin: 0 auto;
+    margin: 16px auto;
 }
 
 .live-photo-video {
