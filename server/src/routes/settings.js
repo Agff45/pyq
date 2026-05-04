@@ -7,7 +7,11 @@ const router = express.Router();
 
 router.get('/api/settings', authMiddleware, (req, res) => {
   try {
-    res.json({ code: 0, data: settingsService.readSettings() });
+    const data = settingsService.readSettings();
+    if (Array.isArray(data.headerMediaList)) {
+      data.headerMediaList = data.headerMediaList.join('\n');
+    }
+    res.json({ code: 0, data });
   } catch (err) {
     console.error('读取站点设置失败:', err);
     res.status(500).json({ code: 500, message: '读取站点设置失败: ' + err.message });

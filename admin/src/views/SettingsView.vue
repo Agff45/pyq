@@ -112,9 +112,71 @@
           </div>
 
           <div class="settings-checks">
-            <label><input v-model="form.enablePjax" type="checkbox" /> 开启 PJAX</label>
-            <label><input v-model="form.enableLightbox" type="checkbox" /> 开启图片灯箱</label>
+            <label><input v-model="form.enablePjax" type="checkbox" /> 开启 PJAX（页面无刷新跳转）</label>
+            <label><input v-model="form.enableLightbox" type="checkbox" /> 开启图片灯箱（点击放大）</label>
+            <label><input v-model="form.enableSearch" type="checkbox" /> 开启搜索功能</label>
+            <label><input v-model="form.enableDarkMode" type="checkbox" /> 开启深色模式切换</label>
           </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="settings-section-head">
+            <h3>动态展示</h3>
+            <p>控制朋友圈动态中显示哪些额外信息。</p>
+          </div>
+
+          <div class="settings-checks">
+            <label><input v-model="form.showLocation" type="checkbox" /> 显示位置信息</label>
+            <label><input v-model="form.showTags" type="checkbox" /> 显示标签</label>
+          </div>
+          <p class="settings-help">需要在文章 front matter 中填写 location / tags 字段才会生效。</p>
+        </section>
+
+        <section class="settings-section">
+          <div class="settings-section-head">
+            <h3>备案与图标</h3>
+            <p>网站 ICP 备案号和浏览器标签页图标。</p>
+          </div>
+
+          <div class="settings-grid two-cols">
+            <label class="settings-field">
+              <span>ICP 备案号</span>
+              <input v-model="form.icp" type="text" placeholder="京ICP备12345678号" />
+            </label>
+            <label class="settings-field">
+              <span>网站图标 (favicon)</span>
+              <div class="settings-upload-line">
+                <input v-model="form.favicon" type="text" placeholder="favicon.ico" />
+                <button type="button" class="settings-upload-btn" @click="triggerUpload('favicon', 'image')">上传</button>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="settings-section-head">
+            <h3>多封面轮播</h3>
+            <p>设置多张封面图片，首页将随机轮播展示。</p>
+          </div>
+
+          <label class="settings-field">
+            <span>封面图片列表（每行一个地址）</span>
+            <textarea v-model="form.headerMediaList" rows="4" placeholder="/images/cover-1.jpg&#10;/images/cover-2.jpg&#10;/images/cover-3.jpg"></textarea>
+            <small>留空则使用上方"顶部封面"单张展示。填写后启动随机轮播模式。</small>
+          </label>
+        </section>
+
+        <section class="settings-section">
+          <div class="settings-section-head">
+            <h3>社交链接</h3>
+            <p>JSON 格式配置社交链接，显示在页面底部。</p>
+          </div>
+
+          <label class="settings-field">
+            <span>社交链接 JSON</span>
+            <textarea v-model="form.social" rows="5" placeholder='[&#10;  { "name": "GitHub", "icon": "ri-github-line", "url": "https://github.com/" },&#10;  { "name": "微博", "icon": "ri-weibo-line", "url": "https://weibo.com/" }&#10;]'></textarea>
+            <small>name=名称, icon=RemixIcon 类名, url=链接地址</small>
+          </label>
         </section>
 
         <div class="settings-footer">
@@ -158,6 +220,14 @@ const form = reactive({
   fontFamily: 'ZQL',
   enablePjax: true,
   enableLightbox: true,
+  enableSearch: true,
+  enableDarkMode: true,
+  showLocation: false,
+  showTags: false,
+  icp: '',
+  favicon: 'favicon.ico',
+  headerMediaList: '',
+  social: '[]',
 });
 
 function handleLogout() {

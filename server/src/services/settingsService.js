@@ -14,7 +14,49 @@ const SETTINGS_FIELDS = [
   'fontFamily',
   'enablePjax',
   'enableLightbox',
+  'enableSearch',
+  'enableDarkMode',
+  'showLocation',
+  'showTags',
+  'icp',
+  'favicon',
+  'headerMediaList',
+  'social',
 ];
+
+const ARRAY_FIELDS = ['headerMediaList'];
+
+function parseArrayValue(raw) {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const inner = trimmed.slice(1, -1).trim();
+    if (!inner) return [];
+    const items = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < inner.length; i++) {
+      const ch = inner[i];
+      if (ch === '"' && (i === 0 || inner[i - 1] !== '\\')) {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        items.push(current.trim());
+        current = '';
+        continue;
+      }
+      current += ch;
+    }
+    if (current.trim()) items.push(current.trim());
+    return items;
+  }
+  return [];
+}
+
+function formatArrayValue(arr) {
+  if (!Array.isArray(arr)) arr = [];
+  return '[' + arr.map((v) => `"${String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(', ') + ']';
+}
 
 function getConfigPath() {
   return path.join(config.hugoSitePath, 'hugo.toml');
@@ -69,23 +111,52 @@ function readSettings() {
       const match = lines[i].match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*=\s*(.+?)\s*$/);
       if (!match) continue;
       const [, key, raw] = match;
-      if (SETTINGS_FIELDS.includes(key)) settings[key] = parseValue(raw);
+      if (SETTINGS_FIELDS.includes(key)) {
+        if (ARRAY_FIELDS.includes(key)) {
+          settings[key] = parseArrayValue(raw);
+        } else {
+          settings[key] = parseValue(raw);
+        }
+      }
     }
   }
 
-  return {
-    title: settings.title || '',
-    username: settings.username || '',
-    description: settings.description || '',
-    avatar: settings.avatar || '',
-    headerMedia: settings.headerMedia || '',
-    navBackground: settings.navBackground || '',
-    navScrolledBackground: settings.navScrolledBackground || '',
-    footerText: settings.footerText || '',
-    fontFamily: settings.fontFamily || 'ZQL',
-    enablePjax: settings.enablePjax !== false,
-    enableLightbox: settings.enableLightbox !== false,
+  const defaults = {
+    title: '',
+    username: '',
+    description: '',
+    avatar: '',
+    headerMedia: '',
+    navBackground: '',
+    navScrolledBackground: '',
+    footerText: '',
+    fontFamily: 'ZQL',
+    enablePjax: true,
+    enableLightbox: true,
+    enableSearch: true,
+    enableDarkMode: true,
+    showLocation: false,
+    showTags: false,
+    icp: '',
+    favicon: 'favicon.ico',
+    headerMediaList: [],
+    social: '[]',
   };
+
+  for (const key of SETTINGS_FIELDS) {
+    if (settings[key] === undefined) {
+      settings[key] = defaults[key];
+    }
+  }
+
+  if (settings.enablePjax === false) settings.enablePjax = false;
+  if (settings.enableLightbox === false) settings.enableLightbox = false;
+  if (settings.enableSearch === false) settings.enableSearch = false;
+  if (settings.enableDarkMode === false) settings.enableDarkMode = false;
+  if (settings.showLocation === true) settings.showLocation = true;
+  if (settings.showTags === true) settings.showTags = true;
+
+  return settings;
 }
 
 function upsertRootValue(lines, key, value) {
@@ -102,22 +173,34 @@ function upsertParamValue(lines, key, value) {
     range = getParamsRange(lines);
   }
 
+  const formatted = ARRAY_FIELDS.includes(key) ? formatArrayValue(value) : formatValue(value);
   const pattern = new RegExp(`^\\s*${key}\\s*=`);
   for (let i = range.start + 1; i < range.end; i += 1) {
     if (pattern.test(lines[i])) {
-      lines[i] = `  ${key} = ${formatValue(value)}`;
+      lines[i] = `  ${key} = ${formatted}`;
       return;
     }
   }
 
-  lines.splice(range.end, 0, `  ${key} = ${formatValue(value)}`);
+  lines.splice(range.end, 0, `  ${key} = ${formatted}`);
 }
 
 function updateSettings(input) {
+  const raw = { ...input };
+
+  if (raw.headerMediaList !== undefined) {
+    if (typeof raw.headerMediaList === 'string') {
+      raw.headerMediaList = raw.headerMediaList
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+  }
+
   const allowed = Object.fromEntries(
     SETTINGS_FIELDS
-      .filter((key) => input[key] !== undefined)
-      .map((key) => [key, input[key]])
+      .filter((key) => raw[key] !== undefined)
+      .map((key) => [key, raw[key]])
   );
 
   const text = readConfigText();
@@ -133,7 +216,12 @@ function updateSettings(input) {
   }
 
   fs.writeFileSync(getConfigPath(), lines.join('\n'), 'utf-8');
-  return readSettings();
+
+  const result = readSettings();
+  if (Array.isArray(result.headerMediaList)) {
+    result.headerMediaList = result.headerMediaList.join('\n');
+  }
+  return result;
 }
 
 module.exports = { readSettings, updateSettings };

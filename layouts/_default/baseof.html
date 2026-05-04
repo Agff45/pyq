@@ -6,9 +6,9 @@
     <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ printf "%s | %s" .Title site.Title }}{{ end }}</title>
     
     {{- /* 图标设置 */ -}}
-    <link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}" type="image/x-icon">
-    <link rel="icon" href="{{ "favicon.ico" | relURL }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ "images/avatar.jpg" | relURL }}">
+    <link rel="shortcut icon" href="{{ .Site.Params.favicon | default "favicon.ico" | relURL }}" type="image/x-icon">
+    <link rel="icon" href="{{ .Site.Params.favicon | default "favicon.ico" | relURL }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ .Site.Params.avatar | default "images/avatar.jpg" | relURL }}">
 
     {{- /* 把所有 CSS 打包到一起 */ -}}
     {{- $styles := slice (resources.Get "css/remixicon.css") (resources.Get "css/message.min.css") (resources.Get "css/style.css") -}}
