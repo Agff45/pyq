@@ -1097,8 +1097,22 @@ class MotionPhoto {
 
         this.videoLoaded = false;
 
+        this.syncAspectFromPoster();
         this.syncControls();
         this.bindEvents();
+    }
+
+    syncAspectFromPoster() {
+        if (!this.poster) return;
+        const apply = () => {
+            const w = this.poster.naturalWidth || 0;
+            const h = this.poster.naturalHeight || 0;
+            if (!w || !h) return;
+            this.container.style.setProperty('--live-photo-aspect', `${w} / ${h}`);
+        };
+
+        if (this.poster.complete) apply();
+        else this.poster.addEventListener('load', apply, { once: true });
     }
 
     loadVideo() {
