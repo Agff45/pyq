@@ -1,11 +1,14 @@
 <template>
   <div class="settings-page">
     <header class="editor-topbar">
-      <button class="back-btn" @click="$router.push('/editor')"><span>←</span> 返回</button>
+      <div class="topbar-left">
+        <button class="back-btn" @click="$router.push('/editor')"><span>‹</span>返回</button>
+      </div>
       <h2>站点设置</h2>
       <div class="topbar-actions">
-        <button class="logout-btn" @click="$router.push('/posts')">文章管理</button>
+        <button class="logout-btn" @click="$router.push('/posts')">文章</button>
         <button class="logout-btn" @click="$router.push('/media')">媒体库</button>
+        <span class="topbar-sep"></span>
         <button class="logout-btn" @click="handleLogout">退出</button>
       </div>
     </header>

@@ -211,6 +211,17 @@ router.get('/api/media', authMiddleware, (req, res) => {
 
     files.sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
 
+    const videoFiles = files.filter((f) => f.type === 'video');
+    for (const vf of videoFiles) {
+      const fullPath = path.join(config.staticPath, vf.path.replace(/^\//, ''));
+      const thumbRel = getThumbPath(fullPath);
+      if (!thumbRel) {
+        generateVideoThumb(fullPath);
+      } else {
+        vf.thumb = thumbRel;
+      }
+    }
+
     const total = files.length;
     const start = (page - 1) * limit;
     const items = files.slice(start, start + limit);

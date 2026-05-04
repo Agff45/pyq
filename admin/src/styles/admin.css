@@ -164,74 +164,120 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px;
+  padding: 0 24px;
+  height: 56px;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-main);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 1px 0 var(--border-main), 0 4px 24px rgba(15, 23, 42, 0.04);
 }
 
-.editor-topbar h2 { font-size: 16px; font-weight: 700; letter-spacing: .02em; }
+.editor-topbar h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: .01em;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
 
 .back-btn {
-  background: none;
-  border: none;
-  color: var(--text-link);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: 999px;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  border: none;
+  border-radius: 10px;
+  background: var(--bg-hover);
+  color: var(--text-desc);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
-.back-btn:hover { background: var(--bg-hover); color: var(--theme-color); }
-
-.back-btn span { font-size: 18px; }
+.back-btn:hover { background: var(--theme-soft); color: var(--theme-color); }
+.back-btn span { font-size: 16px; line-height: 1; margin-top: 1px; }
 
 .logout-btn {
-  background: rgba(255, 255, 255, 0.38);
-  border: 1px solid var(--border-main);
-  border-radius: 999px;
-  padding: 7px 14px;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-desc);
   cursor: pointer;
+  font-weight: 450;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.logout-btn:hover { background: var(--bg-hover); border-color: var(--theme-color); color: var(--theme-color); transform: translateY(-1px); }
+.logout-btn:hover { background: var(--bg-hover); color: var(--text-main); }
+.logout-btn.active-nav { background: var(--theme-soft); color: var(--theme-color); font-weight: 600; }
 
 .new-post-btn {
-  background: var(--theme-color);
+  height: 34px;
+  padding: 0 18px;
   border: none;
-  border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 14px;
+  border-radius: 10px;
+  background: var(--theme-color);
+  font-size: 13px;
+  font-weight: 600;
   color: #fff;
   cursor: pointer;
-  font-weight: 500;
-  box-shadow: 0 10px 24px var(--theme-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--theme-shadow);
 }
 
-.new-post-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 30px var(--theme-shadow); }
+.new-post-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--theme-shadow); }
 
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.topbar-left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.topbar-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.topbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border-main);
+  margin: 0 6px;
+}
 
 @media (max-width: 640px) {
   .editor-topbar {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 10px;
+    padding: 0 14px;
+    height: 50px;
   }
-  .topbar-actions {
-    width: 100%;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+  .editor-topbar h2 {
+    font-size: 15px;
   }
+  .back-btn {
+    padding: 5px 10px 5px 6px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .back-btn span { font-size: 14px; }
+  .logout-btn {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .new-post-btn {
+    height: 30px;
+    padding: 0 14px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .topbar-sep { margin: 0 2px; }
 }
 
 /* ========== 站点设置 ========== */
@@ -1343,7 +1389,6 @@
 }
 
 @media (max-width: 640px) {
-  .editor-topbar { padding: 12px 14px; }
   .editor-main,
   .settings-main,
   .list-main,

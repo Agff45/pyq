@@ -1,13 +1,14 @@
 <template>
   <div class="editor-page">
     <header class="editor-topbar">
-      <button class="back-btn" @click="$router.push('/posts')">
-        <span>←</span> 文章管理
-      </button>
+      <div class="topbar-left">
+        <button class="back-btn" @click="$router.push('/posts')"><span>‹</span>文章管理</button>
+      </div>
       <h2>{{ isEdit ? '编辑动态' : '发新动态' }}</h2>
       <div class="topbar-actions">
         <button class="logout-btn" @click="$router.push('/media')">媒体库</button>
-        <button class="logout-btn" @click="$router.push('/settings')">站点设置</button>
+        <button class="logout-btn" @click="$router.push('/settings')">设置</button>
+        <span class="topbar-sep"></span>
         <button class="logout-btn" @click="handleLogout">退出</button>
       </div>
     </header>
