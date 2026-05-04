@@ -29,8 +29,17 @@ if (fs.existsSync(staticPath)) {
 
 const adminDistPath = config.adminPath;
 if (fs.existsSync(adminDistPath)) {
-  app.use('/admin', express.static(adminDistPath));
+  app.use('/admin', express.static(adminDistPath, {
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    },
+  }));
   app.get('/admin/*', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(adminDistPath, 'index.html'));
   });
 }
