@@ -1365,6 +1365,27 @@ body:has(.view-image) .single-header {
     display: block;
 }
 
+.long-card-thumb.long-card-thumb-motion {
+    position: relative;
+    overflow: hidden;
+}
+
+.long-card-thumb.long-card-thumb-motion::after {
+    content: "LIVE";
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
 .long-card-info {
     flex: 1;
     min-width: 0;
@@ -1413,93 +1434,6 @@ body:has(.view-image) .single-header {
     }
     .long-card-title {
         font-size: 14px;
-    }
-}
-
-.moment-livephotos {
-    margin-top: 10px;
-}
-
-.moment-livephotos .live-photo {
-    margin: 0;
-}
-
-.moment-livephotos .gallery-single .live-photo {
-    max-width: 85%;
-    aspect-ratio: 1 / 1;
-}
-
-.moment-livephotos .gallery-grid {
-    display: grid;
-    gap: 4px;
-}
-
-.moment-livephotos .gallery-grid.cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-    width: 66.6%;
-}
-
-.moment-livephotos .gallery-grid.cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.moment-livephotos .gallery-item {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
-    border-radius: 3px;
-    background: var(--bg-hover);
-    cursor: pointer;
-}
-
-.moment-livephotos .gallery-item .live-photo {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    border-radius: 0;
-    aspect-ratio: auto !important;
-}
-
-.moment-livephotos .gallery-item .live-photo-video,
-.moment-livephotos .gallery-item .live-photo-poster {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.moment-livephotos .gallery-item .live-photo-controls-group {
-    left: 4px;
-    top: 4px;
-    gap: 4px;
-}
-
-.moment-livephotos .gallery-item .live-photo-control-btn {
-    font-size: 12px;
-    padding: 2px 4px;
-    height: 20px;
-    min-width: 20px;
-    border-radius: 4px;
-}
-
-.moment-livephotos .gallery-item .live-photo-live-label,
-.moment-livephotos .gallery-item .live-photo-mute-label {
-    display: none;
-}
-
-.moment-livephotos .gallery-item .live-photo-toggle-btn i.icon-live {
-    width: 12px;
-    height: 12px;
-    background-size: 12px 12px;
-    margin-right: 0;
-}
-
-@media (max-width: 420px) {
-    .moment-livephotos {
-        --live-grid-size: 96px;
     }
 }
 
@@ -3968,10 +3902,13 @@ body {
 
 /* ===== 朋友圈列表页：实况照片看起来就是一张普通图片 ===== */
 .moments-feed:not(.single-view) .live-photo-container {
+    position: relative;
     cursor: pointer;
     box-shadow: none;
     border-radius: 6px;
     background-color: transparent;
+    max-width: none !important;
+    margin: 0 !important;
 }
 
 .moments-feed:not(.single-view) .live-photo-container .live-photo-video {
@@ -4006,9 +3943,8 @@ body {
     display: flex !important;
 }
 
-/* 详情页用 video 自带的 poster，隐藏 img */
 .single-view .live-photo-container .live-photo-poster {
-    display: none;
+    display: block;
 }
 
 /* 文章内页：限制实况照片大小 */

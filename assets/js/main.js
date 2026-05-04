@@ -1784,42 +1784,8 @@ function initMoments() {
         const toggleBtn = textWrapper.querySelector('.text-toggle');
 
         if (textDiv && toggleBtn) {
-            const livePhotos = Array.prototype.slice.call(textDiv.querySelectorAll('.live-photo'));
-            if (livePhotos.length) {
-                let liveWrap = card.querySelector('.moment-livephotos');
-                if (!liveWrap) {
-                    liveWrap = document.createElement('div');
-                    liveWrap.className = 'moment-livephotos moment-gallery';
-                } else {
-                    liveWrap.className = 'moment-livephotos moment-gallery';
-                    liveWrap.innerHTML = '';
-                }
-
-                if (livePhotos.length === 1) {
-                    const single = document.createElement('div');
-                    single.className = 'gallery-single';
-                    single.appendChild(livePhotos[0]);
-                    liveWrap.appendChild(single);
-                } else {
-                    const grid = document.createElement('div');
-                    const len = livePhotos.length;
-                    grid.className = 'gallery-grid ' + ((len === 2 || len === 4) ? 'cols-2' : 'cols-3');
-
-                    livePhotos.forEach(function(node) {
-                        const item = document.createElement('div');
-                        item.className = 'gallery-item';
-                        item.appendChild(node);
-                        grid.appendChild(item);
-                    });
-
-                    liveWrap.appendChild(grid);
-                }
-
-                textWrapper.insertAdjacentElement('afterend', liveWrap);
-            }
-
             // 检测实况照片、音乐卡片和视频，有的话取消折叠
-            const motionPhotos = textDiv.querySelectorAll('.amigo-motion-photo-mark');
+            const motionPhotos = textDiv.querySelectorAll('.live-photo-container');
             const musicCards = textDiv.querySelectorAll('.amigo-music-card-mark');
             const videoContainers = textDiv.querySelectorAll('.amigo-video-container');
 
@@ -1833,34 +1799,19 @@ function initMoments() {
                 textWrapper.classList.add('has-motion-photos');
                 textDiv.dataset.motionCount = String(motionPhotos.length);
 
-                if (motionPhotos.length === 1) {
-                    // 单张：保留原始比例，限制宽度
-                    const single = motionPhotos[0];
-                    single.style.width = 'min(68%, 320px)';
-                    single.style.maxWidth = 'none';
-                    single.style.aspectRatio = single.getAttribute('style')
-                        ?.match(/aspect-ratio:\s*([^;]+)/)?.[1]?.trim() || single.style.aspectRatio;
-                } else {
-                    // 多张：全部强制 1/1 方图
-                    motionPhotos.forEach(el => {
-                        el.style.removeProperty('width');
-                        el.style.removeProperty('max-width');
-                        el.style.aspectRatio = '1 / 1';
-                    });
-                }
-
                 // 列表页点击实况照片 → 跳转详情页自动播放
                 const isSingle = document.querySelector('.moments-feed.single-view') !== null;
                 if (!isSingle) {
                     motionPhotos.forEach(el => {
                         if (!el._motionClickBound) {
                             el._motionClickBound = true;
-                            el.addEventListener('click', function() {
+                            el.addEventListener('click', function(e) {
+                                if (e.target.closest('.live-photo-control-btn')) return;
                                 const article = el.closest('.moment-card');
                                 if (!article) return;
-                                const link = article.querySelector('.moment-footer a[href*="posts"], .long-card-link');
+                                const link = article.querySelector('.action-link-more, .moment-footer a[href], .long-card-link');
                                 if (link) {
-                                    window.location = link.href;
+                                    window.location.href = link.href;
                                 }
                             });
                         }
@@ -2300,6 +2251,7 @@ class MotionPhoto {
     constructor(container, isSingleView) {
         this.container = container;
         this.video = container.querySelector('.live-photo-video');
+        this.poster = container.querySelector('.live-photo-poster');
         this.toggleBtn = container.querySelector('.live-photo-toggle-btn');
         this.muteBtn = container.querySelector('.live-photo-mute-btn');
         this.isSingleView = isSingleView || false;
@@ -2310,15 +2262,12 @@ class MotionPhoto {
 
         this.hoverDelay = parseInt(container.dataset.hoverDelay) || 500;
         this.hoverTimer = null;
+        this.touchActivated = false;
 
         this.videoLoaded = false;
 
-        // 列表页不自动加载视频（节省流量），只做外观初始化
-        // 详情页才加载并绑定事件
-        if (this.isSingleView) {
-            this.loadVideo();
-            this.bindEvents();
-        }
+        this.syncControls();
+        this.bindEvents();
     }
 
     loadVideo() {
@@ -2331,27 +2280,33 @@ class MotionPhoto {
     }
 
     bindEvents() {
-        // 悬停播放
-        this.container.addEventListener('mouseenter', () => {
-            if (this.isLocked) return;
-            this.hoverTimer = setTimeout(() => {
-                this.play();
-            }, this.hoverDelay);
-        });
+        if (this.isSingleView) {
+            this.container.addEventListener('mouseenter', () => {
+                if (this.isLocked) return;
+                this.hoverTimer = setTimeout(() => {
+                    this.play();
+                }, this.hoverDelay);
+            });
 
-        this.container.addEventListener('mouseleave', () => {
-            clearTimeout(this.hoverTimer);
-            if (this.isLocked) return;
-            this.pause();
-        });
+            this.container.addEventListener('mouseleave', () => {
+                clearTimeout(this.hoverTimer);
+                if (this.isLocked) return;
+                this.pause();
+            });
 
-        // 移动端触摸
-        this.container.addEventListener('touchstart', () => {
-            if (this.isLocked) return;
-            this.hoverTimer = setTimeout(() => {
+            this.container.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.live-photo-control-btn')) return;
+                if (this.isLocked) return;
+                clearTimeout(this.hoverTimer);
+                this.touchActivated = true;
                 this.play();
-            }, this.hoverDelay);
-        }, { passive: true });
+            }, { passive: true });
+
+            this.container.addEventListener('touchend', () => {
+                if (this.isLocked) return;
+                clearTimeout(this.hoverTimer);
+            }, { passive: true });
+        }
 
         // LIVE 按钮切换锁定
         if (this.toggleBtn) {
@@ -2360,13 +2315,10 @@ class MotionPhoto {
                 this.isLocked = !this.isLocked;
                 if (this.isLocked) {
                     this.play();
-                    this.toggleBtn.dataset.state = 'playing';
-                    this.toggleBtn.setAttribute('aria-pressed', 'true');
                 } else {
                     this.pause();
-                    this.toggleBtn.dataset.state = 'static';
-                    this.toggleBtn.setAttribute('aria-pressed', 'false');
                 }
+                this.syncControls();
             });
         }
 
@@ -2383,10 +2335,20 @@ class MotionPhoto {
             this.video.addEventListener('play', () => {
                 this.isPlaying = true;
                 this.container.classList.add('is-playing');
+                this.syncControls();
             });
             this.video.addEventListener('pause', () => {
                 this.isPlaying = false;
                 this.container.classList.remove('is-playing');
+                this.syncControls();
+            });
+            this.video.addEventListener('ended', () => {
+                this.isPlaying = false;
+                this.container.classList.remove('is-playing');
+                if (!this.isLocked) {
+                    this.video.currentTime = 0;
+                }
+                this.syncControls();
             });
         }
 
@@ -2405,6 +2367,7 @@ class MotionPhoto {
 
     play() {
         if (!this.video || this.isPlaying) return;
+        this.loadVideo();
         this.video.currentTime = 0;
         this.video.play().catch(() => {});
     }
@@ -2421,11 +2384,19 @@ class MotionPhoto {
         this.video.muted = this.isMuted;
         if (this.muteBtn) {
             this.muteBtn.dataset.muted = this.isMuted.toString();
-            // 切换图标
-            const mutedIcon = this.muteBtn.querySelector('.icon-muted');
-            const unmutedIcon = this.muteBtn.querySelector('.icon-unmuted');
-            if (mutedIcon) mutedIcon.style.display = this.isMuted ? 'block' : 'none';
-            if (unmutedIcon) unmutedIcon.style.display = this.isMuted ? 'none' : 'block';
+        }
+        this.syncControls();
+    }
+
+    syncControls() {
+        if (this.toggleBtn) {
+            const state = this.isLocked || this.isPlaying ? 'live' : 'static';
+            this.toggleBtn.dataset.state = state;
+            this.toggleBtn.setAttribute('aria-pressed', this.isLocked ? 'true' : 'false');
+        }
+        if (this.muteBtn) {
+            this.muteBtn.dataset.muted = this.isMuted.toString();
+            this.muteBtn.setAttribute('aria-pressed', (!this.isMuted).toString());
         }
     }
 }
@@ -2438,7 +2409,6 @@ function initMotionPhotos() {
             const mp = new MotionPhoto(container, isSingleView);
             container.dataset.motionInit = 'true';
             if (isSingleView) {
-                // 详情页：进入后立即加载并播放
                 mp.loadVideo();
                 setTimeout(() => mp.play(), 400);
             }

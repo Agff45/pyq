@@ -18,7 +18,7 @@
 {{- end -}}
 {{- $style := .Get "style" -}}
 
-<div class="live-photo" style="--live-photo-aspect: {{ $ratio | safeCSS }};{{ with $style }}{{ . | safeCSS }}{{ end }}">
+<div class="live-photo amigo-motion-photo-mark live-photo-container" style="--live-photo-aspect: {{ $ratio | safeCSS }}; aspect-ratio: {{ $ratio | safeCSS }};{{ with $style }}{{ . | safeCSS }}{{ end }}">
   <img class="live-photo-poster" src="{{ $image }}" alt="{{ $alt }}" loading="lazy" data-keep="1" no-view>
   <video class="live-photo-video" data-src="{{ $video }}" poster="{{ $image }}" muted playsinline loop preload="metadata" aria-label="{{ $alt }}"></video>
   <div class="live-photo-controls-group">

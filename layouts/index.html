@@ -76,17 +76,24 @@
 
                 {{ if $isLong }}
                 {{/* ========== 长文章卡片模式 ========== */}}
-                {{/* 封面图：cover → images[0] → 正文第一张图 */}}
+                {{/* 封面图：cover → images[0] → 实况照片海报 → 正文第一张图 */}}
                 {{ $coverSrc := "" }}
+                {{ $coverIsMotionPhoto := false }}
                 {{ if .Params.cover }}
                     {{ $coverSrc = .Params.cover }}
                 {{ else if .Params.images }}
                     {{ $coverSrc = index .Params.images 0 }}
                 {{ else }}
+                    {{ $motionPosters := findRE "<img[^>]*class=\"[^\"]*live-photo-poster[^\"]*\"[^>]+src=\"([^\"]+)\"[^>]*>" .Content }}
+                    {{ if $motionPosters }}
+                        {{ $coverSrc = index $motionPosters 0 | replaceRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" "$1" }}
+                        {{ $coverIsMotionPhoto = true }}
+                    {{ else }}
                     {{ $contentForCover := .Content | replaceRE "<img[^>]*data-keep=\"1\"[^>]*>" "" }}
                     {{ $coverImgTags := findRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" $contentForCover }}
                     {{ if $coverImgTags }}
                         {{ $coverSrc = index $coverImgTags 0 | replaceRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" "$1" }}
+                    {{ end }}
                     {{ end }}
                 {{ end }}
                 {{ if and $coverSrc (not (findRE "^(https?://|/)" $coverSrc)) }}
@@ -97,7 +104,7 @@
 
                 <a class="long-card-link" href="{{ .RelPermalink }}">
                     {{ if $coverSrc }}
-                    <div class="long-card-thumb">
+                    <div class="long-card-thumb{{ if $coverIsMotionPhoto }} long-card-thumb-motion{{ end }}">
                         <img src="{{ $coverSrc }}" alt="{{ .Title }}" loading="lazy">
                     </div>
                     {{ end }}

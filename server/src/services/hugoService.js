@@ -9,6 +9,7 @@ let buildTimer = null;
 const HUGO_BIN = (() => {
   const candidates = [
     'hugo',
+    'hugo.exe',
     '/snap/bin/hugo',
     '/usr/local/bin/hugo',
     '/usr/bin/hugo',
@@ -16,7 +17,7 @@ const HUGO_BIN = (() => {
   ];
   for (const bin of candidates) {
     try {
-      execSync(`${bin} version 2>/dev/null`, { stdio: 'pipe' });
+      execSync(`"${bin}" version`, { stdio: 'pipe' });
       console.log(`检测到 Hugo: ${bin}`);
       return bin;
     } catch {}
@@ -37,8 +38,8 @@ function ensureThemeSymlink() {
     }
 
     if (process.platform === 'win32') {
-      const { execSync } = require('child_process');
-      execSync(`mklink /D "${amigoLink}" "${config.hugoSitePath}"`, { stdio: 'pipe' });
+      console.warn('Windows 环境未自动创建 themes/Amigo 软链接，请手动配置主题目录或在支持符号链接的环境中运行。');
+      return;
     } else {
       fs.symlinkSync(config.hugoSitePath, amigoLink, 'dir');
     }
