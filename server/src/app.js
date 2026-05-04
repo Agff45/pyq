@@ -19,6 +19,11 @@ app.use(authRoutes);
 app.use(postRoutes);
 app.use(uploadRoutes);
 
+const staticPath = config.staticPath;
+if (fs.existsSync(staticPath)) {
+  app.use(express.static(staticPath));
+}
+
 const adminDistPath = config.adminPath;
 if (fs.existsSync(adminDistPath)) {
   app.use('/admin', express.static(adminDistPath));

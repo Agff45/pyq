@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
 const postService = require('../services/postService');
+const hugoService = require('../services/hugoService');
 const config = require('../config');
 
 const router = express.Router();
@@ -57,6 +58,7 @@ router.post('/api/posts', authMiddleware, (req, res) => {
     });
 
     res.json({ code: 0, message: '发布成功', data: post });
+    hugoService.build();
   } catch (err) {
     console.error('创建文章失败:', err);
     res.status(500).json({ code: 500, message: '创建文章失败: ' + err.message });
@@ -70,6 +72,7 @@ router.put('/api/posts/:filename', authMiddleware, (req, res) => {
       return res.status(404).json({ code: 404, message: '文章不存在' });
     }
     res.json({ code: 0, message: '更新成功', data: post });
+    hugoService.build();
   } catch (err) {
     console.error('更新文章失败:', err);
     res.status(500).json({ code: 500, message: '更新文章失败: ' + err.message });
@@ -85,6 +88,7 @@ router.delete('/api/posts/:filename', authMiddleware, (req, res) => {
     postService.deletePost(req.params.filename);
     postService.removeFromIndex(req.params.filename);
     res.json({ code: 0, message: '删除成功' });
+    hugoService.build();
   } catch (err) {
     console.error('删除文章失败:', err);
     res.status(500).json({ code: 500, message: '删除文章失败' });
@@ -98,6 +102,7 @@ router.put('/api/posts/:filename/pin', authMiddleware, (req, res) => {
       return res.status(404).json({ code: 404, message: '文章不存在' });
     }
     res.json({ code: 0, message: result.weight > 0 ? '已置顶' : '已取消置顶', data: result });
+    hugoService.build();
   } catch (err) {
     console.error('切换置顶失败:', err);
     res.status(500).json({ code: 500, message: '操作失败' });
