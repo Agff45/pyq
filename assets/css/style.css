@@ -3968,7 +3968,7 @@ body {
 
 /* ===== 朋友圈列表页：实况照片看起来就是一张普通图片 ===== */
 .moments-feed:not(.single-view) .live-photo-container {
-    cursor: default;
+    cursor: pointer;
     box-shadow: none;
     border-radius: 6px;
     background-color: transparent;

@@ -1849,6 +1849,24 @@ function initMoments() {
                     });
                 }
 
+                // 列表页点击实况照片 → 跳转详情页自动播放
+                const isSingle = document.querySelector('.moments-feed.single-view') !== null;
+                if (!isSingle) {
+                    motionPhotos.forEach(el => {
+                        if (!el._motionClickBound) {
+                            el._motionClickBound = true;
+                            el.addEventListener('click', function() {
+                                const article = el.closest('.moment-card');
+                                if (!article) return;
+                                const link = article.querySelector('.moment-footer a[href*="posts"], .long-card-link');
+                                if (link) {
+                                    window.location = link.href;
+                                }
+                            });
+                        }
+                    });
+                }
+
                 const cols = Math.min(motionPhotos.length, 3);
                 const colsMd = Math.min(motionPhotos.length, 2);
                 const colsSm = 1;
@@ -2369,6 +2387,18 @@ class MotionPhoto {
             this.video.addEventListener('pause', () => {
                 this.isPlaying = false;
                 this.container.classList.remove('is-playing');
+            });
+        }
+
+        // 详情页点击容器切换播放/暂停
+        if (this.isSingleView) {
+            this.container.addEventListener('click', (e) => {
+                if (e.target.closest('.live-photo-control-btn')) return;
+                if (this.isPlaying) {
+                    this.pause();
+                } else {
+                    this.play();
+                }
             });
         }
     }
