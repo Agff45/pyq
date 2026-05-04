@@ -178,7 +178,7 @@
           <template v-if="modalForm.liveStyle === 'motionPhoto'">
             <div class="modal-row">
               <div class="modal-field half"><label>宽高比</label>
-                <select v-model="modalForm.ratio"><option>3/4</option><option>1/1</option><option>4/3</option><option>16/9</option></select>
+                <select v-model="modalForm.ratio"><option>9/16</option><option>3/4</option><option>1/1</option><option>4/3</option><option>16/9</option></select>
               </div>
               <div class="modal-field half"><label>触发延迟(ms)</label><input v-model="modalForm.delay" placeholder="500" /></div>
             </div>
