@@ -829,11 +829,15 @@ body:has(.view-image) .single-header {
     align-items: center;
     justify-content: space-between;
     padding: 0 5px;
-    background: transparent; /* 初始透明 */
+    background: var(--home-header-bg-custom, transparent); /* 初始透明 */
+    background-size: cover;
+    background-position: center;
 }
 
 .home-header.scrolled {
-    background: var(--bg-header);
+    background: var(--home-header-scrolled-bg-custom, var(--bg-header));
+    background-size: cover;
+    background-position: center;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px var(--shadow-header);

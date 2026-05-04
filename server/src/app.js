@@ -9,6 +9,7 @@ const hugoService = require('./services/hugoService');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const uploadRoutes = require('./routes/upload');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(authRoutes);
 app.use(postRoutes);
 app.use(uploadRoutes);
+app.use(settingsRoutes);
 
 const staticPath = config.staticPath;
 if (fs.existsSync(staticPath)) {

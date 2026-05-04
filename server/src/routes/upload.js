@@ -22,6 +22,7 @@ function getMediaDir(mediaType) {
     livephoto: 'livephoto',
     image: 'images',
     cover: 'images',
+    site: 'images/site',
   };
   const dir = typeMap[mediaType] || 'images';
   return path.join(config.staticPath, dir);
