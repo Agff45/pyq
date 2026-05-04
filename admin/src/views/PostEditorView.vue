@@ -165,27 +165,20 @@
         <!-- 实况照片（三合一） -->
         <template v-if="modalType === 'livephoto'">
           <h3>插入实况照片</h3>
-          <div class="modal-field">
-            <label>样式</label>
-            <select v-model="modalForm.liveStyle">
-              <option value="livephoto">📷 Live Photo（带实况/静音按钮）</option>
-              <option value="motionPhoto">📸 悬停播放（鼠标悬停自动播放）</option>
-              <option value="livephotoCard">🎞️ 实况卡片（带播放控制和进度条）</option>
-            </select>
-          </div>
           <div class="modal-field"><label>封面图片</label><div class="field-with-upload"><input v-model="modalForm.image" placeholder="图片路径 / 或上传" /><button class="upload-mini-btn" @click="uploadToField('image','livephoto','image')" title="上传图片">🖼️</button></div></div>
           <div class="modal-field"><label>视频文件</label><div class="field-with-upload"><input v-model="modalForm.video" placeholder="视频路径 / 或上传（不填自动推导）" /><button class="upload-mini-btn" @click="uploadToField('video','livephoto','video')" title="上传视频">📁</button></div></div>
-          <template v-if="modalForm.liveStyle === 'motionPhoto'">
-            <div class="modal-row">
-              <div class="modal-field half"><label>宽高比</label>
-                <select v-model="modalForm.ratio"><option>9/16</option><option>3/4</option><option>1/1</option><option>4/3</option><option>16/9</option></select>
-              </div>
-              <div class="modal-field half"><label>触发延迟(ms)</label><input v-model="modalForm.delay" placeholder="500" /></div>
+          <div class="modal-row">
+            <div class="modal-field half"><label>宽高比</label>
+              <select v-model="modalForm.ratio">
+                <option value="9/16">9/16 — 竖屏 (手机直拍)</option>
+                <option value="3/4">3/4 — 经典相机 (iPhone默认)</option>
+                <option value="1/1">1/1 — 正方形 (头像/封面)</option>
+                <option value="4/3">4/3 — 横屏相机 (iPad/微单)</option>
+                <option value="16/9">16/9 — 宽屏视频 (显示器/电影)</option>
+              </select>
             </div>
-          </template>
-          <template v-if="modalForm.liveStyle === 'livephotoCard'">
-            <div class="modal-field"><label>说明文字</label><input v-model="modalForm.caption" placeholder="图片说明" /></div>
-          </template>
+            <div class="modal-field half"><label>触发延迟(ms)</label><input v-model="modalForm.delay" placeholder="500" /></div>
+          </div>
         </template>
 
         <input ref="modalFileInput" type="file" hidden @change="handleModalFileChange" />
@@ -249,15 +242,15 @@ const modalFileInput = ref(null);
 const pendingUploadTarget = ref({ field: '', mediaType: '', fileType: '' });
 const modalForm = reactive({
   src: '', cover: '', name: '', artist: '', accent: '#d43c33',
-  poster: '', ratio: '16/9', autoplay: false, loop: false, muted: false, page: '1',
-  duration: '', image: '', video: '', delay: '500', caption: '', liveStyle: 'livephoto',
+  poster: '', ratio: '9/16', autoplay: false, loop: false, muted: false, page: '1',
+  duration: '', image: '', video: '', delay: '500',
 });
 
 function resetModalForm() {
   Object.assign(modalForm, {
     src: '', cover: '', name: '', artist: '', accent: '#d43c33',
-    poster: '', ratio: '16/9', autoplay: false, loop: false, muted: false, page: '1',
-    duration: '', image: '', video: '', delay: '500', caption: '', liveStyle: 'livephoto',
+    poster: '', ratio: '9/16', autoplay: false, loop: false, muted: false, page: '1',
+    duration: '', image: '', video: '', delay: '500',
   });
 }
 
@@ -320,19 +313,8 @@ function insertShortcode() {
       break;
     }
     case 'livephoto':
-    case 'motionPhoto':
-    case 'livephotoCard': {
-      const style = m.liveStyle || 'livephoto';
-      if (style === 'motionPhoto') {
-        shortcode = `{{< motion-photo\n    image="${m.image}"\n    video="${m.video}"\n    ratio="${m.ratio}"\n    delay="${m.delay}"\n>}}`;
-      } else if (style === 'livephotoCard') {
-        shortcode = `{{< livephoto-card\n    src="${m.image}"\n    video="${m.video}"\n    caption="${m.caption}"\n>}}`;
-      } else {
-        const ratioPart = m.ratio && m.ratio !== '4/5' ? ` ratio="${m.ratio}"` : '';
-        shortcode = `{{< livephoto image="${m.image}" video="${m.video}"${ratioPart} >}}`;
-      }
+      shortcode = `{{< motion-photo\n    image="${m.image}"\n    video="${m.video}"\n    ratio="${m.ratio}"\n    delay="${m.delay}"\n>}}`;
       break;
-    }
     default:
       break;
   }
