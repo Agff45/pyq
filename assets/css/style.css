@@ -316,7 +316,7 @@ blockquote {
     height: 24px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     background-color: transparent;
     color: #606060;
     cursor: pointer;
@@ -345,9 +345,17 @@ blockquote {
 }
 
 .live-photo .live-photo-mute-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
     background-color: rgba(44, 44, 46, 0.35);
     border-color: rgba(255, 255, 255, 0.18);
     color: rgb(205 205 205 / 92%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .live-photo .live-photo-mute-btn:hover {
@@ -404,21 +412,13 @@ blockquote {
 .live-photo-mute-btn[data-muted="true"] .icon-unmuted { display: none; }
 .live-photo-mute-btn[data-muted="false"] .icon-muted { display: none; }
 
-.live-photo .live-photo-live-label,
-.live-photo .live-photo-mute-label {
+.live-photo .live-photo-live-label {
     font-size: 12px;
     line-height: 1;
     letter-spacing: 0.02em;
     white-space: nowrap;
 }
 
-.live-photo-mute-label {
-    color: rgb(205 205 205 / 92%);
-}
-
-@container (max-width: 200px) {
-    .live-photo .live-photo-mute-label { display: none; }
-}
 .live-photo .warning {
     padding: 4px 6px;
     margin: 10px;

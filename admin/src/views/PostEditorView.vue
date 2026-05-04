@@ -328,7 +328,8 @@ function insertShortcode() {
       } else if (style === 'livephotoCard') {
         shortcode = `{{< livephoto-card\n    src="${m.image}"\n    video="${m.video}"\n    caption="${m.caption}"\n>}}`;
       } else {
-        shortcode = `{{< livephoto image="${m.image}" video="${m.video}" >}}`;
+        const ratioPart = m.ratio && m.ratio !== '4/5' ? ` ratio="${m.ratio}"` : '';
+        shortcode = `{{< livephoto image="${m.image}" video="${m.video}"${ratioPart} >}}`;
       }
       break;
     }
