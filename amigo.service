@@ -1,0 +1,22 @@
+[Unit]
+Description=Amigo Blog Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/amigo
+ExecStart=/usr/bin/node /opt/amigo/server/src/app.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# 安全加固
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/amigo/content /opt/amigo/static /opt/amigo/server/data /opt/amigo/logs
+
+[Install]
+WantedBy=multi-user.target

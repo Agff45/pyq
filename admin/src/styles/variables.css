@@ -1,0 +1,55 @@
+:root {
+  --font-family: 'ZQL', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  --bg-body: #f2f2f2;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --bg-input: #f7f7f7;
+
+  --text-main: #333333;
+  --text-desc: #777777;
+  --text-muted: #999999;
+  --text-link: #576b95;
+  --text-white: #ffffff;
+
+  --theme-color: #07c160;
+  --danger-color: #fa5151;
+  --border-main: #eeeeee;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-popover: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+  --max-width: 680px;
+  --radius: 8px;
+}
+
+[data-theme="dark"] {
+  --bg-body: #111111;
+  --bg-card: #1e1e1e;
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --bg-input: #222222;
+
+  --text-main: #e5e5e5;
+  --text-desc: #999999;
+  --text-muted: #777777;
+
+  --border-main: #333333;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-popover: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-body);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, button {
+  font-family: inherit;
+}
