@@ -32,6 +32,7 @@
           <div v-for="item in items" :key="item.path" class="media-card" :title="item.filename">
             <div class="media-thumb" @click="previewItem(item)">
               <img v-if="item.type === 'image'" :src="item.path" :alt="item.filename" loading="lazy" />
+              <img v-else-if="item.thumb" :src="item.thumb" :alt="item.filename" loading="lazy" />
               <div v-else-if="item.type === 'video'" class="media-icon-placeholder">
                 <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
               </div>

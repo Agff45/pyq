@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { spawn } = require('child_process');
 const authMiddleware = require('../middleware/auth');
 const config = require('../config');
 const { generateImageDir } = require('../utils/slug');
@@ -72,6 +73,40 @@ const upload = multer({
   limits: { fileSize: 200 * 1024 * 1024 },
 });
 
+function generateVideoThumb(videoPath) {
+  return new Promise((resolve) => {
+    const ext = path.extname(videoPath);
+    const thumbPath = videoPath.replace(ext, '.thumb.jpg');
+    if (fs.existsSync(thumbPath)) return resolve(thumbPath);
+
+    const ffmpeg = spawn('ffmpeg', [
+      '-ss', '00:00:01',
+      '-i', videoPath,
+      '-vframes', '1',
+      '-vf', 'scale=480:-1',
+      '-q:v', '5',
+      '-y',
+      thumbPath,
+    ], { stdio: 'ignore' });
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0 && fs.existsSync(thumbPath)) {
+        resolve(thumbPath);
+      } else {
+        resolve(null);
+      }
+    });
+
+    ffmpeg.on('error', () => resolve(null));
+  });
+}
+
+function getThumbPath(filePath) {
+  const ext = path.extname(filePath);
+  const thumbPath = filePath.replace(ext, '.thumb.jpg');
+  return fs.existsSync(thumbPath) ? '/' + path.relative(config.staticPath, thumbPath).replace(/\\/g, '/') : null;
+}
+
 router.post('/api/upload', authMiddleware, (req, res) => {
   upload.array('files', 20)(req, res, (err) => {
     if (err) {
@@ -109,6 +144,10 @@ router.post('/api/upload', authMiddleware, (req, res) => {
       message: '上传成功',
       data: { files },
     });
+
+    req.files
+      .filter((f) => ALLOWED_VIDEO.includes(path.extname(f.originalname).toLowerCase()))
+      .forEach((f) => generateVideoThumb(f.path));
   });
 });
 
@@ -147,13 +186,20 @@ router.get('/api/media', authMiddleware, (req, res) => {
           else if (isAudio) fileType = 'audio';
           else if (isVideo) fileType = 'video';
 
-          files.push({
+          const item = {
             path: relativePath,
             filename: entry.name,
             size: stat.size,
             mtime: stat.mtime.toISOString(),
             type: fileType,
-          });
+          };
+
+          if (isVideo) {
+            const thumb = getThumbPath(fullPath);
+            if (thumb) item.thumb = thumb;
+          }
+
+          files.push(item);
         }
       }
     }
@@ -198,6 +244,13 @@ router.delete('/api/media', authMiddleware, (req, res) => {
     }
 
     fs.unlinkSync(fullPath);
+
+    const ext = path.extname(fullPath);
+    const thumbPath = fullPath.replace(ext, '.thumb.jpg');
+    if (fs.existsSync(thumbPath)) {
+      fs.unlinkSync(thumbPath);
+    }
+
     res.json({ code: 0, message: '删除成功' });
   } catch (err) {
     console.error('删除文件失败:', err);
