@@ -816,7 +816,7 @@ body:has(.view-image) .single-header {
 }
 
 .home-header {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -1894,7 +1894,7 @@ body:has(.view-image) .single-header {
 
 /* Sticky Header */
 .single-header {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
