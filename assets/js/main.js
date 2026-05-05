@@ -1345,10 +1345,7 @@ function openLivePhotoLightbox(originalEl) {
     closeBtn.setAttribute('aria-label', '关闭');
     lightbox.appendChild(closeBtn);
 
-    clone.style.maxWidth = '';
-    clone.style.maxHeight = '';
-    clone.style.width = '';
-    clone.style.height = '';
+    clone.removeAttribute('style');
     clone.dataset.motionInit = 'false';
     clone.classList.add('lightbox-clone');
     lightbox.appendChild(clone);
