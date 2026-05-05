@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
     initHeaderMedia();
     initArchiveFilter();
     initHomeSearch();
+    initHomeFloatingBar();
     initMusicPlayers();
     initLivePhotoCards();
     initMusicCardPlayers();
@@ -77,6 +78,7 @@ document.addEventListener("pjax:complete", function() {
     initHeaderMedia();
     initArchiveFilter();
     initHomeSearch();
+    initHomeFloatingBar();
     initLivePhotoCards();
     initMotionPhotos();
     initVideoPlayers();
@@ -1336,6 +1338,21 @@ function openLivePhotoLightbox(originalEl) {
     closeLivePhotoLightbox();
 
     var clone = originalEl.cloneNode(true);
+    clone.removeAttribute('style');
+    clone.dataset.motionInit = 'false';
+    clone.classList.add('lightbox-clone');
+
+    var videoEl = clone.querySelector('.live-photo-video');
+    if (videoEl) {
+        var src = videoEl.dataset.src;
+        if (src) {
+            videoEl.src = src;
+            videoEl.setAttribute('src', src);
+            videoEl.load();
+        }
+        videoEl.style.cssText = 'display:block;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;z-index:1;border-radius:12px';
+    }
+
     var lightbox = document.createElement('div');
     lightbox.className = 'live-photo-lightbox';
 
@@ -1345,9 +1362,6 @@ function openLivePhotoLightbox(originalEl) {
     closeBtn.setAttribute('aria-label', '关闭');
     lightbox.appendChild(closeBtn);
 
-    clone.removeAttribute('style');
-    clone.dataset.motionInit = 'false';
-    clone.classList.add('lightbox-clone');
     lightbox.appendChild(clone);
     document.body.appendChild(lightbox);
 
@@ -1358,8 +1372,11 @@ function openLivePhotoLightbox(originalEl) {
     mp.loadVideo();
 
     setTimeout(function() {
-        mp.play();
-    }, 150);
+        mp.play().then(function() {
+            var v = clone.querySelector('.live-photo-video');
+            if (v) v.style.opacity = '1';
+        }).catch(function() {});
+    }, 250);
 
     function closeFn() {
         lightbox.classList.add('live-lightbox-out');
@@ -1393,6 +1410,26 @@ function closeLivePhotoLightbox() {
         existing.parentNode.removeChild(existing);
     }
     document.body.style.overflow = '';
+}
+
+function initHomeFloatingBar() {
+    var floatingBar = document.getElementById('home-floating-bar');
+    if (!floatingBar) return;
+
+    var searchContainer = document.getElementById('header-search');
+    if (searchContainer) {
+        floatingBar.appendChild(searchContainer);
+    }
+
+    var themeToggle = document.querySelector('.home-header .theme-toggle');
+    if (themeToggle) {
+        var actionsDiv = document.createElement('div');
+        actionsDiv.className = 'floating-actions';
+        actionsDiv.appendChild(themeToggle);
+        floatingBar.appendChild(actionsDiv);
+    }
+
+    floatingBar.style.display = 'flex';
 }
 
 /* ==========================================================================

@@ -11,6 +11,8 @@
         {{ if and $media $isVideo }}
         <video class="moments-header-video" src="{{ $media }}" autoplay muted loop playsinline preload="auto"></video>
         {{ end }}
+        {{/* 浮动搜索+主题切换栏 */}}
+        <div class="home-floating-bar" id="home-floating-bar"></div>
         <div class="header-user">
             <div class="header-avatar">
                 <img src="{{ .Site.Params.avatar | default ( "images/avatar.jpg" | relURL ) }}" alt="Avatar">
