@@ -4,33 +4,24 @@ let scrollHandler = null;
 
 function initScrollEffect() {
     const singleHeader = document.querySelector('.single-header');
-    const homeHeader = document.querySelector('.home-header');
-    
-    // 如果之前已经绑定过了，先解绑，防止内存泄漏
+
+    if (!singleHeader) return;
+
     if (scrollHandler) {
         window.removeEventListener('scroll', scrollHandler);
         scrollHandler = null;
     }
 
-    if (!singleHeader && !homeHeader) return;
-
     scrollHandler = () => {
         const scrolled = window.scrollY > 20;
-        
+
         if (singleHeader) {
             if (scrolled) singleHeader.classList.add('scrolled');
             else singleHeader.classList.remove('scrolled');
         }
-        
-        if (homeHeader) {
-            // 首页滑下来也加个毛玻璃效果
-            if (scrolled) homeHeader.classList.add('scrolled');
-            else homeHeader.classList.remove('scrolled');
-        }
     };
 
     window.addEventListener('scroll', scrollHandler, { passive: true });
-    // 刚进页面先跑一遍，看看是不是已经滚在半路了
     scrollHandler();
 }
 
