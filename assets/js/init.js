@@ -97,6 +97,10 @@ document.addEventListener("DOMContentLoaded", function() {
             Fancybox.unbind("[data-fancybox]");
             Fancybox.close(); 
         }
+        // 关闭实况照片灯箱
+        if (typeof closeLivePhotoLightbox === 'function') {
+            closeLivePhotoLightbox();
+        }
     });
 
     // PJAX 跳转完后的逻辑

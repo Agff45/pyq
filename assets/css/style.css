@@ -805,9 +805,7 @@ blockquote {
 
 /* 菜单遮罩层 - 重新设计的平滑体验 */
 /* 层级管理 */
-.home-header, .single-header {
-    z-index: 1100;
-}
+/* .home-header, .single-header { z-index: 1100; } */
 
 /* 开启图片浏览器时隐藏页眉 */
 body:has(.view-image) .home-header,
@@ -816,14 +814,9 @@ body:has(.view-image) .single-header {
 }
 
 .home-header {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
     width: 100%;
     max-width: var(--max-width);
     height: 60px;
-    z-index: 1100;
     transition: all 0.4s ease;
     display: flex;
     align-items: center;
@@ -1892,17 +1885,11 @@ body:has(.view-image) .single-header {
    Single Page Improvements
    ========================================================================== */
 
-/* Sticky Header */
 .single-header {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
     width: 100%;
     max-width: var(--max-width); /* Align with content width */
     height: 50px;
     background: transparent; /* Initial transparent */
-    z-index: 1000;
     border-bottom: 1px solid transparent;
     transition: all 0.3s ease;
 }
@@ -2150,8 +2137,6 @@ body {
 .single-header {
     width: 100%;
     max-width: var(--max-width);
-    left: 50%;
-    transform: translateX(-50%);
     border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -3421,4 +3406,98 @@ body {
     --motion-photo-shadow-idle: 0 4px 12px rgba(0, 0, 0, 0.3);
     --motion-photo-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
     background-color: #1a1a1a;
+}
+
+/* ==========================================================================
+   实况照片灯箱
+   ========================================================================== */
+.live-photo-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    animation: live-lightbox-in 0.3s ease;
+}
+.live-photo-lightbox.live-lightbox-out {
+    animation: live-lightbox-out 0.25s ease forwards;
+}
+@keyframes live-lightbox-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+@keyframes live-lightbox-out {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.live-photo-lightbox .lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.2s;
+}
+.live-photo-lightbox .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.live-photo-lightbox .live-photo-container {
+    max-width: 90vw;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    position: relative;
+    border-radius: 12px;
+    cursor: default;
+    background-color: transparent;
+    box-shadow: none;
+    aspect-ratio: auto;
+}
+.live-photo-lightbox .live-photo-container .live-photo-video {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 1;
+    z-index: 1;
+}
+.live-photo-lightbox .live-photo-container .live-photo-controls-group {
+    display: flex !important;
+    z-index: 2;
+}
+.live-photo-lightbox .live-photo-container .live-photo-poster {
+    position: relative;
+    width: auto;
+    height: auto;
+    max-width: 90vw;
+    max-height: 85vh;
+    display: block;
+    object-fit: contain;
+    border-radius: 8px;
+    opacity: 1;
+    z-index: 0;
+}
+.live-photo-lightbox .live-photo-container.is-playing .live-photo-poster {
+    opacity: 0 !important;
+}
+.live-photo-lightbox .live-photo-container .warning {
+    display: none !important;
 }

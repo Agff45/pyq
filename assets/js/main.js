@@ -659,7 +659,7 @@ function initMoments() {
                 textWrapper.classList.add('has-motion-photos');
                 textDiv.dataset.motionCount = String(motionPhotos.length);
 
-                // 列表页点击实况照片 → 跳转详情页自动播放
+                // 列表页点击实况照片 → 灯箱弹窗播放
                 const isSingle = document.querySelector('.moments-feed.single-view') !== null;
                 if (!isSingle) {
                     motionPhotos.forEach(el => {
@@ -667,12 +667,8 @@ function initMoments() {
                             el._motionClickBound = true;
                             el.addEventListener('click', function(e) {
                                 if (e.target.closest('.live-photo-control-btn')) return;
-                                const article = el.closest('.moment-card');
-                                if (!article) return;
-                                const link = article.querySelector('.action-link-more, .moment-footer a[href], .long-card-link');
-                                if (link) {
-                                    window.location.href = link.href;
-                                }
+                                e.preventDefault();
+                                openLivePhotoLightbox(el);
                             });
                         }
                     });
@@ -1334,6 +1330,72 @@ function initMotionPhotos() {
             }
         }
     });
+}
+
+function openLivePhotoLightbox(originalEl) {
+    closeLivePhotoLightbox();
+
+    var clone = originalEl.cloneNode(true);
+    var lightbox = document.createElement('div');
+    lightbox.className = 'live-photo-lightbox';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'lightbox-close';
+    closeBtn.innerHTML = '<i class="ri-close-line"></i>';
+    closeBtn.setAttribute('aria-label', '关闭');
+    lightbox.appendChild(closeBtn);
+
+    clone.style.maxWidth = '';
+    clone.style.maxHeight = '';
+    clone.style.width = '';
+    clone.style.height = '';
+    clone.dataset.motionInit = 'false';
+    clone.classList.add('lightbox-clone');
+    lightbox.appendChild(clone);
+    document.body.appendChild(lightbox);
+
+    document.body.style.overflow = 'hidden';
+
+    var mp = new MotionPhoto(clone, true);
+    clone.dataset.motionInit = 'true';
+    mp.loadVideo();
+
+    setTimeout(function() {
+        mp.play();
+    }, 150);
+
+    function closeFn() {
+        lightbox.classList.add('live-lightbox-out');
+        setTimeout(function() {
+            if (lightbox.parentNode) lightbox.parentNode.removeChild(lightbox);
+            document.body.style.overflow = '';
+        }, 250);
+    }
+
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeFn();
+    });
+
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeFn();
+    });
+
+    var escHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeFn();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+function closeLivePhotoLightbox() {
+    var existing = document.querySelector('.live-photo-lightbox');
+    if (existing) {
+        existing.parentNode.removeChild(existing);
+    }
+    document.body.style.overflow = '';
 }
 
 /* ==========================================================================
