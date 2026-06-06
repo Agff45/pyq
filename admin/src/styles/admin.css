@@ -1515,6 +1515,102 @@
   .post-item-actions button { flex: 1; }
 }
 
+/* ========== 性能优化：减少后台管理动画卡顿 ========== */
+.admin-theme-toggle,
+.editor-card,
+.settings-card,
+.login-card,
+.list-search-bar,
+.post-item,
+.media-card,
+.delete-confirm,
+.modal-card,
+.editor-topbar,
+.modal-mask,
+.media-preview-overlay,
+.media-play-badge svg {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.editor-card,
+.settings-card,
+.login-card,
+.list-search-bar,
+.post-item,
+.media-card,
+.delete-confirm,
+.modal-card,
+.toast,
+.media-toast {
+  animation-duration: .14s !important;
+}
+
+.logout-btn,
+.new-post-btn,
+.login-btn,
+.publish-btn,
+.btn-draft,
+.btn-cancel,
+.btn-confirm,
+.settings-upload-btn,
+.add-image-btn,
+.cover-upload-btn,
+.tool-btn,
+.upload-mini-btn,
+.post-item-actions button,
+.list-pagination button,
+.media-tab,
+.upload-btn,
+.media-card-btn,
+.load-more-btn,
+.copy-btn,
+.cancel-btn,
+.confirm-delete-btn,
+.remove-img,
+.cover-remove,
+.back-btn,
+.post-item,
+.media-card,
+.grid-item,
+.media-thumb img,
+.media-video-thumb {
+  will-change: auto !important;
+  transition-duration: .12s !important;
+  transition-property: transform, background-color, border-color, color, opacity !important;
+}
+
+.post-item:hover,
+.media-card:hover,
+.grid-item:hover,
+.publish-btn:hover,
+.upload-btn:hover,
+.login-btn:hover:not(:disabled),
+.new-post-btn:hover {
+  box-shadow: var(--shadow-card) !important;
+}
+
+.grid-item:hover img,
+.media-card:hover .media-thumb img,
+.media-card:hover .media-video-thumb {
+  transform: none !important;
+}
+
+@media (hover: none) {
+  .post-item:hover,
+  .media-card:hover,
+  .grid-item:hover,
+  .logout-btn:hover,
+  .new-post-btn:hover,
+  .publish-btn:hover,
+  .upload-btn:hover,
+  .btn-draft:hover,
+  .media-card-btn:hover,
+  .post-item-actions button:hover {
+    transform: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
