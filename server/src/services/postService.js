@@ -4,6 +4,42 @@ const matter = require('gray-matter');
 const config = require('../config');
 const { generateFilename } = require('../utils/slug');
 
+class InvalidPostFilenameError extends Error {
+  constructor(message = '无效的文章文件名') {
+    super(message);
+    this.name = 'InvalidPostFilenameError';
+    this.statusCode = 400;
+  }
+}
+
+function isPathInside(childPath, parentPath) {
+  const relative = path.relative(parentPath, childPath);
+  return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function getPostPath(filename) {
+  if (typeof filename !== 'string' || !filename.trim()) {
+    throw new InvalidPostFilenameError();
+  }
+
+  if (
+    filename.includes('\0') ||
+    filename.includes('/') ||
+    filename.includes('\\') ||
+    path.basename(filename) !== filename ||
+    path.extname(filename).toLowerCase() !== '.md'
+  ) {
+    throw new InvalidPostFilenameError();
+  }
+
+  const contentRoot = path.resolve(config.contentPath);
+  const filePath = path.resolve(contentRoot, filename);
+  if (!isPathInside(filePath, contentRoot)) {
+    throw new InvalidPostFilenameError();
+  }
+  return filePath;
+}
+
 function ensureDataDir() {
   const dir = path.dirname(config.indexPath);
   if (!fs.existsSync(dir)) {
@@ -35,7 +71,7 @@ function saveIndex(index) {
 }
 
 function readPost(filename) {
-  const filePath = path.join(config.contentPath, filename);
+  const filePath = getPostPath(filename);
   if (!fs.existsSync(filePath)) return null;
   const raw = fs.readFileSync(filePath, 'utf-8');
   const parsed = matter(raw);
@@ -49,7 +85,7 @@ function readPost(filename) {
 
 function writePost(filename, frontMatter, content) {
   ensureContentDir();
-  const filePath = path.join(config.contentPath, filename);
+  const filePath = getPostPath(filename);
   const fm = { ...frontMatter };
   if (!fm.date) {
     fm.date = new Date().toISOString();
@@ -60,7 +96,7 @@ function writePost(filename, frontMatter, content) {
 }
 
 function deletePost(filename) {
-  const filePath = path.join(config.contentPath, filename);
+  const filePath = getPostPath(filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
@@ -267,4 +303,5 @@ module.exports = {
   removeFromIndex,
   upsertIndexEntry,
   rebuildIndex,
+  InvalidPostFilenameError,
 };

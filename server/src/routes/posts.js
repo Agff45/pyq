@@ -2,9 +2,28 @@ const express = require('express');
 const authMiddleware = require('../middleware/auth');
 const postService = require('../services/postService');
 const hugoService = require('../services/hugoService');
-const config = require('../config');
 
 const router = express.Router();
+
+function parsePositiveInt(value, fallback, max) {
+  const parsed = parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.min(parsed, max);
+}
+
+function parseOptionalBoolean(value) {
+  if (value === undefined) return undefined;
+  if (value === true || value === 'true') return true;
+  if (value === false || value === 'false') return false;
+  return undefined;
+}
+
+function sendRouteError(res, err, fallbackMessage) {
+  if (err instanceof postService.InvalidPostFilenameError) {
+    return res.status(400).json({ code: 400, message: err.message });
+  }
+  return res.status(500).json({ code: 500, message: fallbackMessage });
+}
 
 async function finishWithBuild(res, successMessage, data) {
   const build = await hugoService.build({ immediate: true });
@@ -23,15 +42,16 @@ async function finishWithBuild(res, successMessage, data) {
 
 router.get('/api/posts', authMiddleware, (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const { search, tag, author, draft } = req.query;
+    const page = parsePositiveInt(req.query.page, 1, 100000);
+    const limit = parsePositiveInt(req.query.limit, 20, 100);
+    const { search, tag, author } = req.query;
+    const draft = parseOptionalBoolean(req.query.draft);
 
     const result = postService.listPosts({ page, limit, search, tag, author, draft });
     res.json({ code: 0, data: result });
   } catch (err) {
     console.error('获取文章列表失败:', err);
-    res.status(500).json({ code: 500, message: '获取文章列表失败' });
+    sendRouteError(res, err, '获取文章列表失败');
   }
 });
 
@@ -52,7 +72,7 @@ router.get('/api/posts/:filename', authMiddleware, (req, res) => {
     });
   } catch (err) {
     console.error('获取文章详情失败:', err);
-    res.status(500).json({ code: 500, message: '获取文章详情失败' });
+    sendRouteError(res, err, '获取文章详情失败');
   }
 });
 
@@ -88,6 +108,9 @@ router.put('/api/posts/:filename', authMiddleware, async (req, res) => {
     await finishWithBuild(res, '更新成功', post);
   } catch (err) {
     console.error('更新文章失败:', err);
+    if (err instanceof postService.InvalidPostFilenameError) {
+      return res.status(400).json({ code: 400, message: err.message });
+    }
     res.status(500).json({ code: 500, message: '更新文章失败: ' + err.message });
   }
 });
@@ -103,7 +126,7 @@ router.delete('/api/posts/:filename', authMiddleware, async (req, res) => {
     await finishWithBuild(res, '删除成功');
   } catch (err) {
     console.error('删除文章失败:', err);
-    res.status(500).json({ code: 500, message: '删除文章失败' });
+    sendRouteError(res, err, '删除文章失败');
   }
 });
 
@@ -116,7 +139,7 @@ router.put('/api/posts/:filename/pin', authMiddleware, async (req, res) => {
     await finishWithBuild(res, result.weight > 0 ? '已置顶' : '已取消置顶', result);
   } catch (err) {
     console.error('切换置顶失败:', err);
-    res.status(500).json({ code: 500, message: '操作失败' });
+    sendRouteError(res, err, '操作失败');
   }
 });
 

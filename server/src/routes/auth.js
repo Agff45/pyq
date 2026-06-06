@@ -9,16 +9,25 @@ const router = express.Router();
 
 const ENV_PATH = path.join(__dirname, '../.env');
 
+function formatEnvValue(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9_./:@+-]+$/.test(text)) {
+    return text;
+  }
+  return JSON.stringify(text);
+}
+
 function updateEnvFile(newPassword) {
+  const nextLine = `ADMIN_PASSWORD=${formatEnvValue(newPassword)}`;
   if (!fs.existsSync(ENV_PATH)) {
-    fs.writeFileSync(ENV_PATH, `ADMIN_PASSWORD=${newPassword}\n`, 'utf-8');
+    fs.writeFileSync(ENV_PATH, `${nextLine}\n`, 'utf-8');
     return;
   }
   let content = fs.readFileSync(ENV_PATH, 'utf-8');
   if (/^ADMIN_PASSWORD=/m.test(content)) {
-    content = content.replace(/^ADMIN_PASSWORD=.*$/m, `ADMIN_PASSWORD=${newPassword}`);
+    content = content.replace(/^ADMIN_PASSWORD=.*$/m, nextLine);
   } else {
-    content += `\nADMIN_PASSWORD=${newPassword}\n`;
+    content += `${content.endsWith('\n') ? '' : '\n'}${nextLine}\n`;
   }
   fs.writeFileSync(ENV_PATH, content, 'utf-8');
 }

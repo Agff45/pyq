@@ -78,21 +78,22 @@ function queueBuild() {
   return buildQueue;
 }
 
+function consumeScheduledBuild() {
+  clearTimeout(buildTimer);
+  buildTimer = null;
+
+  const resolve = scheduledResolve;
+  scheduledBuild = null;
+  scheduledResolve = null;
+
+  const queued = queueBuild();
+  if (resolve) queued.then(resolve);
+  return queued;
+}
+
 function build({ immediate = false } = {}) {
   if (immediate) {
-    clearTimeout(buildTimer);
-    buildTimer = null;
-
-    if (scheduledResolve) {
-      const resolve = scheduledResolve;
-      scheduledBuild = null;
-      scheduledResolve = null;
-      const queued = queueBuild();
-      queued.then(resolve);
-      return queued;
-    }
-
-    return queueBuild();
+    return scheduledBuild ? consumeScheduledBuild() : queueBuild();
   }
 
   if (!scheduledBuild) {
@@ -102,14 +103,7 @@ function build({ immediate = false } = {}) {
   }
 
   clearTimeout(buildTimer);
-  buildTimer = setTimeout(() => {
-    const resolve = scheduledResolve;
-    scheduledBuild = null;
-    scheduledResolve = null;
-    buildTimer = null;
-
-    queueBuild().then(resolve);
-  }, 2000);
+  buildTimer = setTimeout(consumeScheduledBuild, 2000);
 
   return scheduledBuild;
 }

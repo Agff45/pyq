@@ -13,6 +13,26 @@ const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
+function isPathInside(childPath, parentPath) {
+  const relative = path.relative(parentPath, childPath);
+  return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function resolvePublicFile(requestPath) {
+  const publicRoot = path.resolve(publicPath);
+  const relativeRequest = requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, '');
+  const candidates = [
+    path.resolve(publicRoot, relativeRequest),
+    path.resolve(publicRoot, `${relativeRequest}.html`),
+  ];
+
+  return candidates.find((candidate) => (
+    isPathInside(candidate, publicRoot) &&
+    fs.existsSync(candidate) &&
+    fs.statSync(candidate).isFile()
+  ));
+}
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -58,12 +78,9 @@ app.use((req, res, next) => {
 
 app.use((req, res) => {
   if (fs.existsSync(publicPath)) {
-    const htmlPath = path.join(publicPath, req.path === '/' ? 'index.html' : req.path);
-    if (fs.existsSync(htmlPath)) {
+    const htmlPath = resolvePublicFile(req.path);
+    if (htmlPath) {
       return res.sendFile(htmlPath);
-    }
-    if (fs.existsSync(path.join(publicPath, req.path + '.html'))) {
-      return res.sendFile(path.join(publicPath, req.path + '.html'));
     }
   }
   res.status(404).send('页面不存在');
