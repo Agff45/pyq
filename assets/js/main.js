@@ -202,7 +202,6 @@ function initMomentActionMenus() {
     wrappers.forEach(wrapper => {
         const toggle = wrapper.querySelector('.action-toggle');
         const copyBtn = wrapper.querySelector('.action-copy-link');
-        const shareBtn = wrapper.querySelector('.action-share-post');
         if (!toggle || toggle._actionMenuBound) return;
 
         toggle._actionMenuBound = true;
@@ -231,28 +230,6 @@ function initMomentActionMenus() {
             });
         }
 
-        if (shareBtn) {
-            shareBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const url = toggle.dataset.postUrl || window.location.href;
-                const title = toggle.dataset.postTitle || document.title;
-
-                if (navigator.share) {
-                    navigator.share({ title, url })
-                        .then(() => closeMomentActionMenus())
-                        .catch(() => {});
-                } else {
-                    copyTextToClipboard(url)
-                        .then(() => {
-                            closeMomentActionMenus();
-                            showActionFeedback('链接已复制');
-                        })
-                        .catch(() => showActionFeedback('分享失败'));
-                }
-            });
-        }
     });
 
     if (!document._momentActionMenusBound) {
