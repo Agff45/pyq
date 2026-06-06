@@ -198,9 +198,31 @@
                         {{ end }}
 
                         <div class="action-wrapper">
-                            <a href="{{ .RelPermalink }}" class="action-link-more" title="查看详情">
+                            <button
+                                type="button"
+                                class="action-toggle"
+                                title="更多操作"
+                                aria-label="更多操作"
+                                aria-expanded="false"
+                                data-post-title="{{ .Title }}"
+                                data-post-url="{{ .Permalink }}"
+                            >
                                 <i class="ri-more-fill"></i>
-                            </a>
+                            </button>
+                            <div class="action-popover" role="menu" aria-label="动态操作">
+                                <a class="popover-btn" href="{{ .RelPermalink }}" role="menuitem">
+                                    <i class="ri-eye-line"></i>
+                                    <span>查看</span>
+                                </a>
+                                <button type="button" class="popover-btn action-copy-link" role="menuitem">
+                                    <i class="ri-link"></i>
+                                    <span>复制</span>
+                                </button>
+                                <button type="button" class="popover-btn action-share-post" role="menuitem">
+                                    <i class="ri-share-forward-line"></i>
+                                    <span>分享</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </footer>

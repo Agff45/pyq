@@ -1667,6 +1667,11 @@ body:has(.view-image) .single-header {
     color: var(--theme-color);
 }
 
+.action-wrapper.is-open .action-toggle {
+    background: var(--bg-active);
+    color: var(--theme-color);
+}
+
 .action-popover {
     position: absolute;
     right: 40px;
@@ -1686,9 +1691,11 @@ body:has(.view-image) .single-header {
     transition: opacity 0.2s ease, transform 0.2s ease;
     white-space: nowrap;
     box-shadow: var(--shadow-popover);
+    z-index: 20;
 }
 
-.action-popover.is-visible {
+.action-popover.is-visible,
+.action-wrapper.is-open .action-popover {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
@@ -1699,11 +1706,48 @@ body:has(.view-image) .single-header {
     border: none;
     display: flex;
     align-items: center;
+    gap: 5px;
+    height: 30px;
     padding: 0 16px;
     font-size: 14px;
     color: var(--text-white);
     cursor: pointer;
     transition: opacity 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    font-family: var(--font-family);
+}
+
+.popover-btn + .popover-btn {
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.popover-btn i {
+    font-size: 16px;
+}
+
+.popover-btn:hover {
+    opacity: 0.78;
+}
+
+.action-feedback-toast {
+    position: fixed;
+    left: 50%;
+    top: 24px;
+    z-index: 9999;
+    transform: translateX(-50%);
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(20, 20, 20, 0.86);
+    color: #fff;
+    font-size: 13px;
+    box-shadow: var(--shadow-popover);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.action-feedback-toast.is-hiding {
+    opacity: 0;
+    transform: translate(-50%, -6px);
 }
 
 .popover-btn i {

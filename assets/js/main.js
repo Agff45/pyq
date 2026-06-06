@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
     initHeaderMedia();
     initArchiveFilter();
     initHomeSearch();
+    initMomentActionMenus();
     initHomeFloatingBar();
     initMusicPlayers();
     initLivePhotoCards();
@@ -78,6 +79,7 @@ document.addEventListener("pjax:complete", function() {
     initHeaderMedia();
     initArchiveFilter();
     initHomeSearch();
+    initMomentActionMenus();
     initHomeFloatingBar();
     initLivePhotoCards();
     initMotionPhotos();
@@ -138,6 +140,129 @@ function initMenu() {
 /* ==========================================================================
    主题管理（深色/浅色模式）
    ========================================================================== */
+
+function showActionFeedback(text) {
+    if (window.Qmsg && typeof window.Qmsg.success === 'function') {
+        window.Qmsg.success(text);
+        return;
+    }
+
+    const old = document.querySelector('.action-feedback-toast');
+    if (old) old.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'action-feedback-toast';
+    toast.textContent = text;
+    document.body.appendChild(toast);
+
+    window.setTimeout(() => {
+        toast.classList.add('is-hiding');
+        window.setTimeout(() => toast.remove(), 180);
+    }, 1500);
+}
+
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise((resolve, reject) => {
+        const input = document.createElement('textarea');
+        input.value = text;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        document.body.appendChild(input);
+        input.select();
+
+        try {
+            const ok = document.execCommand('copy');
+            document.body.removeChild(input);
+            ok ? resolve() : reject(new Error('copy failed'));
+        } catch (err) {
+            document.body.removeChild(input);
+            reject(err);
+        }
+    });
+}
+
+function closeMomentActionMenus(except) {
+    document.querySelectorAll('.action-wrapper.is-open').forEach(wrapper => {
+        if (wrapper === except) return;
+        wrapper.classList.remove('is-open');
+        const toggle = wrapper.querySelector('.action-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function initMomentActionMenus() {
+    const wrappers = document.querySelectorAll('.moment-card .action-wrapper');
+    if (!wrappers.length) return;
+
+    wrappers.forEach(wrapper => {
+        const toggle = wrapper.querySelector('.action-toggle');
+        const copyBtn = wrapper.querySelector('.action-copy-link');
+        const shareBtn = wrapper.querySelector('.action-share-post');
+        if (!toggle || toggle._actionMenuBound) return;
+
+        toggle._actionMenuBound = true;
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const willOpen = !wrapper.classList.contains('is-open');
+            closeMomentActionMenus(wrapper);
+            wrapper.classList.toggle('is-open', willOpen);
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const url = toggle.dataset.postUrl || window.location.href;
+                copyTextToClipboard(url)
+                    .then(() => {
+                        closeMomentActionMenus();
+                        showActionFeedback('链接已复制');
+                    })
+                    .catch(() => showActionFeedback('复制失败'));
+            });
+        }
+
+        if (shareBtn) {
+            shareBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const url = toggle.dataset.postUrl || window.location.href;
+                const title = toggle.dataset.postTitle || document.title;
+
+                if (navigator.share) {
+                    navigator.share({ title, url })
+                        .then(() => closeMomentActionMenus())
+                        .catch(() => {});
+                } else {
+                    copyTextToClipboard(url)
+                        .then(() => {
+                            closeMomentActionMenus();
+                            showActionFeedback('链接已复制');
+                        })
+                        .catch(() => showActionFeedback('分享失败'));
+                }
+            });
+        }
+    });
+
+    if (!document._momentActionMenusBound) {
+        document._momentActionMenusBound = true;
+        document.addEventListener('click', () => closeMomentActionMenus());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMomentActionMenus();
+        });
+    }
+}
 
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
@@ -742,35 +867,6 @@ function initMoments() {
         }
     });
 
-    // 2. Handle Action Menu (Popover)
-    // Close all popovers when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.action-wrapper')) {
-            document.querySelectorAll('.action-popover').forEach(el => {
-                el.classList.remove('is-visible');
-            });
-        }
-    });
-
-    const actionWrappers = document.querySelectorAll('.action-wrapper');
-    actionWrappers.forEach(wrapper => {
-        const toggleBtn = wrapper.querySelector('.action-toggle');
-        const popover = wrapper.querySelector('.action-popover');
-
-        if (toggleBtn && popover) {
-            toggleBtn.onclick = function(e) {
-                e.stopPropagation(); // Prevent document click
-
-                // Close others first
-                document.querySelectorAll('.action-popover').forEach(el => {
-                    if (el !== popover) el.classList.remove('is-visible');
-                });
-
-                // Toggle current
-                popover.classList.toggle('is-visible');
-            };
-        }
-    });
 }
 
 /* ==========================================================================
