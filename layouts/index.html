@@ -52,6 +52,7 @@
 
         <article class="moment-card{{ if $isAd }} moment-card-ad{{ end }}{{ if $isLong }} moment-card-long{{ end }}" id="post-{{ .File.UniqueID }}">
             {{ $currentPage := . }}
+            {{ $hasImagesParam := isset .Params "images" }}
 
             {{/* 左侧：头像 */}}
             <aside class="moment-aside">
@@ -74,9 +75,9 @@
                 {{ $coverIsMotionPhoto := false }}
                 {{ if .Params.cover }}
                     {{ $coverSrc = .Params.cover }}
-                {{ else if .Params.images }}
+                {{ else if and $hasImagesParam .Params.images }}
                     {{ $coverSrc = index .Params.images 0 }}
-                {{ else }}
+                {{ else if not $hasImagesParam }}
                     {{ $motionPosters := findRE "<img[^>]*class=\"[^\"]*live-photo-poster[^\"]*\"[^>]+src=\"([^\"]+)\"[^>]*>" .Content }}
                     {{ if $motionPosters }}
                         {{ $coverSrc = index $motionPosters 0 | replaceRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" "$1" }}
@@ -122,7 +123,6 @@
                 </div>
 
                 {{/* 图片画廊（九宫格） */}}
-                {{ $hasImagesParam := isset .Params "images" }}
                 {{ $images := .Params.images }}
                 {{ if not $hasImagesParam }}
                     {{ $contentForImages := .Content | replaceRE "<img[^>]*data-keep=\"1\"[^>]*>" "" }}

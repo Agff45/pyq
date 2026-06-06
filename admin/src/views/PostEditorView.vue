@@ -227,6 +227,7 @@ const lastSaved = ref('');
 const fileInput = ref(null);
 const coverInput = ref(null);
 const textareaRef = ref(null);
+const imagesTouched = ref(false);
 
 const galleryTags = computed(() => {
   return tagsInput.value
@@ -369,6 +370,7 @@ async function handleFileChange(e) {
     uploaded.forEach((f) => {
       if (galleryImages.value.length < 9) {
         galleryImages.value.push({ path: f.path, preview: f.path, uploaded: true });
+        imagesTouched.value = true;
       }
     });
     showToast(`已上传 ${uploaded.length} 张图片`, 'success');
@@ -395,6 +397,7 @@ async function handleCoverUpload(e) {
 
 function removeImage(idx) {
   galleryImages.value.splice(idx, 1);
+  imagesTouched.value = true;
 }
 
 let dragIdx = -1;
@@ -426,6 +429,7 @@ async function doSave(draft) {
     location: meta.location,
     tags: galleryTags.value,
     images: galleryImages.value.map((i) => i.path),
+    imagesTouched: imagesTouched.value,
     isLongArticle: meta.isLongArticle,
     cover: meta.cover,
     draft,
@@ -483,6 +487,7 @@ onMounted(async () => {
       if (d.frontMatter.images) {
         galleryImages.value = d.frontMatter.images.map((p) => ({ path: p, preview: p, uploaded: true }));
       }
+      imagesTouched.value = false;
     } catch (err) {
       showToast('加载文章失败', 'error');
     }

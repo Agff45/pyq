@@ -128,7 +128,9 @@ function createPost({ title, content, author, location, tags, images, cover, isL
   return { ...indexEntry, filePath };
 }
 
-function updatePost(filename, { title, content, author, location, tags, images, cover, isLongArticle, weight, draft }) {
+function updatePost(filename, {
+  title, content, author, location, tags, images, imagesTouched, cover, isLongArticle, weight, draft,
+}) {
   const existing = readPost(filename);
   if (!existing) return null;
 
@@ -148,8 +150,9 @@ function updatePost(filename, { title, content, author, location, tags, images, 
     if (tags && tags.length) frontMatter.tags = tags;
     else delete frontMatter.tags;
   }
-  if (images !== undefined) {
-    if (images && images.length) frontMatter.images = images;
+  if (images !== undefined || imagesTouched) {
+    const nextImages = Array.isArray(images) ? images : [];
+    if (nextImages.length) frontMatter.images = nextImages;
     else frontMatter.images = [];
   }
   if (cover !== undefined) {
