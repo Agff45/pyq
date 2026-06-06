@@ -2713,6 +2713,32 @@ body {
     display: block;
 }
 
+.amigo-video-container:fullscreen,
+.amigo-video-container:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    aspect-ratio: auto !important;
+    background: #000;
+}
+
+.amigo-video-container:fullscreen .amigo-video,
+.amigo-video-container:-webkit-full-screen .amigo-video,
+.amigo-video-container:fullscreen iframe,
+.amigo-video-container:-webkit-full-screen iframe {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.amigo-video-container:fullscreen .amigo-video-controls,
+.amigo-video-container:-webkit-full-screen .amigo-video-controls {
+    padding: 14px 18px;
+    opacity: 1;
+}
+
 .amigo-video-controls {
     position: absolute;
     bottom: 0;
