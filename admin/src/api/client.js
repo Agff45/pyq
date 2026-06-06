@@ -17,9 +17,13 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const requestUrl = err.config?.url || '';
+    const isLoginRequest = requestUrl.includes('/auth/login');
+    if (err.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('token');
-      router.push('/admin/login');
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login');
+      }
     }
     return Promise.reject(err);
   }
