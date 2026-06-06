@@ -1033,7 +1033,84 @@ function attachPlayingMusicPlayer() {
    视频播放器功能 (video shortcode)
    ========================================================================== */
 
+let youtubeVideoLightboxCleanup = null;
+
+function closeYouTubeVideoLightbox() {
+    const existing = document.querySelector('.amigo-video-lightbox');
+    if (youtubeVideoLightboxCleanup) youtubeVideoLightboxCleanup();
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    document.body.style.overflow = '';
+}
+
+function openYouTubeVideoLightbox(src, title) {
+    if (!src) return;
+    closeYouTubeVideoLightbox();
+
+    const lightbox = document.createElement('div');
+    lightbox.className = 'amigo-video-lightbox';
+
+    const stage = document.createElement('div');
+    stage.className = 'amigo-video-lightbox-stage';
+
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.title = title || 'YouTube video';
+    iframe.loading = 'lazy';
+    iframe.frameBorder = '0';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.allowFullscreen = true;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'amigo-video-lightbox-close';
+    closeBtn.innerHTML = '<i class="ri-close-line"></i>';
+    closeBtn.setAttribute('aria-label', '关闭');
+
+    stage.appendChild(iframe);
+    lightbox.appendChild(stage);
+    lightbox.appendChild(closeBtn);
+    document.body.appendChild(lightbox);
+    document.body.style.overflow = 'hidden';
+
+    const closeFn = () => {
+        lightbox.classList.add('is-closing');
+        setTimeout(closeYouTubeVideoLightbox, 220);
+    };
+
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeFn();
+    });
+
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeFn();
+    });
+
+    const escHandler = (e) => {
+        if (e.key === 'Escape') closeFn();
+    };
+    document.addEventListener('keydown', escHandler);
+
+    youtubeVideoLightboxCleanup = () => {
+        document.removeEventListener('keydown', escHandler);
+        youtubeVideoLightboxCleanup = null;
+    };
+}
+
 function initVideoPlayers() {
+    document.querySelectorAll('.amigo-video-youtube-lite').forEach(container => {
+        if (container.dataset.youtubeInit) return;
+        container.dataset.youtubeInit = 'true';
+
+        const openPlayer = () => {
+            const src = container.dataset.embedSrc;
+            const title = container.dataset.title || 'YouTube video';
+            openYouTubeVideoLightbox(src, title);
+        };
+
+        container.addEventListener('click', openPlayer);
+    });
+
     document.querySelectorAll('.amigo-video-container:not(.amigo-video-bilibili)').forEach(container => {
         if (container.dataset.videoInit) return;
         container.dataset.videoInit = 'true';

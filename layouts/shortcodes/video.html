@@ -51,17 +51,18 @@
     {{- $videoId = replaceRE ".*/live/([A-Za-z0-9_-]{11}).*" "$1" $src -}}
   {{- end -}}
   {{- if $videoId -}}
-    {{- $embedSrc := printf "https://www.youtube-nocookie.com/embed/%s" $videoId -}}
-    <div class="amigo-video-container amigo-video-youtube amigo-video-embed" style="aspect-ratio: {{ $ratio | safeCSS }};">
-        <iframe
-            src="{{ $embedSrc }}"
-            title="{{ $alt | default "YouTube video" }}"
-            loading="lazy"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerpolicy="strict-origin-when-cross-origin"
-            allowfullscreen
-        ></iframe>
+    {{- $embedSrc := printf "https://www.youtube-nocookie.com/embed/%s?autoplay=1&rel=0&modestbranding=1&playsinline=1" $videoId -}}
+    {{- $thumbSrc := printf "https://i.ytimg.com/vi/%s/hqdefault.jpg" $videoId -}}
+    <div
+        class="amigo-video-container amigo-video-youtube amigo-video-youtube-lite"
+        style="aspect-ratio: {{ $ratio | safeCSS }};"
+        data-embed-src="{{ $embedSrc }}"
+        data-title="{{ $alt | default "YouTube video" }}"
+    >
+        <img class="amigo-video-youtube-thumb" src="{{ $thumbSrc }}" alt="{{ $alt | default "YouTube video" }}" loading="lazy" data-keep="1" no-view>
+        <button type="button" class="amigo-video-youtube-play" aria-label="播放 YouTube 视频">
+            <i class="ri-play-fill"></i>
+        </button>
     </div>
   {{- else -}}
     <p class="amigo-video-error">无法识别 YouTube 视频链接</p>
