@@ -8,6 +8,7 @@
 {{- $page := .Get "page" | default "1" -}}
 
 {{- $isBilibili := or (findRE "bilibili\\.com" $src) (findRE "player\\.bilibili\\.com" $src) -}}
+{{- $isYouTube := or (findRE "(youtube\\.com|youtube-nocookie\\.com)" $src) (findRE "youtu\\.be" $src) -}}
 
 {{- if $isBilibili -}}
   {{/* 哔哩哔哩嵌入 */}}
@@ -23,7 +24,7 @@
   {{- else if $aid -}}
     {{- $embedSrc = printf "https://player.bilibili.com/player.html?aid=%s&page=%s&autoplay=0" $aid $page -}}
   {{- end -}}
-  <div class="amigo-video-container amigo-video-bilibili" style="aspect-ratio: {{ $ratio | safeCSS }};">
+  <div class="amigo-video-container amigo-video-bilibili amigo-video-embed" style="aspect-ratio: {{ $ratio | safeCSS }};">
       <iframe
           src="{{ $embedSrc }}"
           scrolling="no"
@@ -35,6 +36,36 @@
           aria-label="{{ $alt }}"
       ></iframe>
   </div>
+{{- else if $isYouTube -}}
+  {{/* YouTube 分享链接嵌入 */}}
+  {{- $videoId := "" -}}
+  {{- if findRE "youtu\\.be/([A-Za-z0-9_-]{11})" $src -}}
+    {{- $videoId = replaceRE ".*youtu\\.be/([A-Za-z0-9_-]{11}).*" "$1" $src -}}
+  {{- else if findRE "[?&]v=([A-Za-z0-9_-]{11})" $src -}}
+    {{- $videoId = replaceRE ".*[?&]v=([A-Za-z0-9_-]{11}).*" "$1" $src -}}
+  {{- else if findRE "/embed/([A-Za-z0-9_-]{11})" $src -}}
+    {{- $videoId = replaceRE ".*/embed/([A-Za-z0-9_-]{11}).*" "$1" $src -}}
+  {{- else if findRE "/shorts/([A-Za-z0-9_-]{11})" $src -}}
+    {{- $videoId = replaceRE ".*/shorts/([A-Za-z0-9_-]{11}).*" "$1" $src -}}
+  {{- else if findRE "/live/([A-Za-z0-9_-]{11})" $src -}}
+    {{- $videoId = replaceRE ".*/live/([A-Za-z0-9_-]{11}).*" "$1" $src -}}
+  {{- end -}}
+  {{- if $videoId -}}
+    {{- $embedSrc := printf "https://www.youtube-nocookie.com/embed/%s" $videoId -}}
+    <div class="amigo-video-container amigo-video-youtube amigo-video-embed" style="aspect-ratio: {{ $ratio | safeCSS }};">
+        <iframe
+            src="{{ $embedSrc }}"
+            title="{{ $alt | default "YouTube video" }}"
+            loading="lazy"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+        ></iframe>
+    </div>
+  {{- else -}}
+    <p class="amigo-video-error">无法识别 YouTube 视频链接</p>
+  {{- end -}}
 {{- else -}}
   {{/* 普通视频 */}}
   {{- if and $src (not (findRE "^(https?://|/)" $src)) -}}

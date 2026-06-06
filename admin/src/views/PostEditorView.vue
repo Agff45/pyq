@@ -141,7 +141,7 @@
         <!-- 视频 -->
         <template v-if="modalType === 'video'">
           <h3>插入视频</h3>
-          <div class="modal-field"><label>视频文件</label><div class="field-with-upload"><input v-model="modalForm.src" placeholder="本地路径 / B站链接 / 外链 / 或上传" /><button class="upload-mini-btn" @click="uploadToField('src','video','video')" title="上传视频">📁</button></div></div>
+          <div class="modal-field"><label>视频文件</label><div class="field-with-upload"><input v-model="modalForm.src" placeholder="本地路径 / B站链接 / YouTube 分享链接 / 外链 / 或上传" /><button class="upload-mini-btn" @click="uploadToField('src','video','video')" title="上传视频">📁</button></div></div>
           <div class="modal-field"><label>封面图</label><div class="field-with-upload"><input v-model="modalForm.poster" placeholder="可选 / 或上传" /><button class="upload-mini-btn" @click="uploadToField('poster','cover','image')" title="上传封面">🖼️</button></div></div>
           <div class="modal-row">
             <div class="modal-field half"><label>宽高比</label>

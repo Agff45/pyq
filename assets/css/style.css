@@ -2693,11 +2693,12 @@ body {
     cursor: pointer;
 }
 
-.amigo-video-bilibili {
+.amigo-video-bilibili,
+.amigo-video-youtube {
     cursor: default;
 }
 
-.amigo-video-bilibili iframe {
+.amigo-video-embed iframe {
     position: absolute;
     top: 0;
     left: 0;
