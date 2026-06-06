@@ -678,7 +678,7 @@ function initMoments() {
                     });
                 }
 
-                const cols = Math.min(motionPhotos.length, 3);
+                const cols = (motionPhotos.length === 2 || motionPhotos.length === 4) ? 2 : Math.min(motionPhotos.length, 3);
                 const colsMd = Math.min(motionPhotos.length, 2);
                 const colsSm = 1;
                 textDiv.style.setProperty('--motion-photo-columns', String(cols));

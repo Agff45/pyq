@@ -65,6 +65,9 @@
 
     /* 布局参数 */
     --max-width: 680px;
+    --moment-media-gap: 3px;
+    --moment-media-tile: clamp(72px, 23vw, 104px);
+    --moment-media-single-width: min(68%, 240px);
 }
 
 /* 深色模式变量 */
@@ -1021,7 +1024,7 @@ body:has(.view-image) .single-header {
     max-height: none !important;
     display: grid !important;
     grid-template-columns: repeat(var(--motion-photo-columns, 1), minmax(0, 1fr));
-    gap: 12px;
+    gap: var(--moment-media-gap);
     -webkit-line-clamp: unset !important;
 }
 
@@ -1033,8 +1036,19 @@ body:has(.view-image) .single-header {
 }
 
 .moments-feed .moment-text.has-motion-photos {
-    --motion-photo-single-width-ratio: 68%;
-    --motion-photo-single-max-width: 320px;
+    --motion-photo-single-width-ratio: var(--moment-media-single-width);
+    --motion-photo-single-max-width: 240px;
+}
+
+.moments-feed:not(.single-view) .moment-text.has-motion-photos {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--moment-media-gap);
+}
+
+.moments-feed:not(.single-view) .moment-text.has-motion-photos[data-motion-count="1"] {
+    display: block !important;
 }
 
 .moments-feed .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
@@ -1051,6 +1065,7 @@ body:has(.view-image) .single-header {
 .article-text.has-motion-photos > p {
     display: block !important;
     grid-column: 1 / -1;
+    flex: 0 0 100%;
     margin: 0 !important;
 }
 
@@ -1148,29 +1163,31 @@ body:has(.view-image) .single-header {
 
 /* 九宫格画廊样式 */
 .moment-gallery {
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .moment-gallery .gallery-single img {
-    max-width: 85%;
+    width: var(--moment-media-single-width);
     max-height: 400px;
     border-radius: 4px;
     cursor: pointer;
     display: block;
+    object-fit: cover;
 }
 
 .moment-gallery .gallery-grid {
     display: grid;
-    gap: 4px;
+    gap: var(--moment-media-gap);
+    width: max-content;
+    max-width: 100%;
 }
 
 .moment-gallery .gallery-grid.cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-    width: 66.6%;
+    grid-template-columns: repeat(2, var(--moment-media-tile));
 }
 
 .moment-gallery .gallery-grid.cols-3 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, var(--moment-media-tile));
 }
 
 .moment-gallery .gallery-item {
@@ -3231,10 +3248,14 @@ body {
 }
 
 .moments-feed:not(.single-view) .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
+    width: var(--moment-media-single-width) !important;
     height: auto !important;
+    aspect-ratio: auto !important;
 }
 
 .moments-feed:not(.single-view) .moment-text.has-motion-photos:not([data-motion-count="1"]) .live-photo-container {
+    width: var(--moment-media-tile) !important;
+    height: var(--moment-media-tile) !important;
     aspect-ratio: 1 / 1 !important;
 }
 
@@ -3252,6 +3273,7 @@ body {
     height: auto;
     display: block;
     border-radius: 6px;
+    object-fit: cover;
 }
 
 .moments-feed:not(.single-view) .moment-text.has-motion-photos:not([data-motion-count="1"]) .live-photo-container .live-photo-poster {
