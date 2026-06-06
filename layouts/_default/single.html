@@ -33,8 +33,9 @@
                 </div>
 
                 {{/* 图片展示 - 详情页使用大图垂直排列 */}}
+                {{ $hasImagesParam := isset .Params "images" }}
                 {{ $images := .Params.images }}
-                {{ if not $images }}
+                {{ if not $hasImagesParam }}
                     {{/* 如果没有在头部写图片，就去正文里抓 */}}
                     {{ $contentForImages := .Content | replaceRE "<img[^>]*data-keep=\"1\"[^>]*>" "" }}
                     {{ $imgTags := findRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" $contentForImages }}

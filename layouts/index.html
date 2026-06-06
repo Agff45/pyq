@@ -122,8 +122,9 @@
                 </div>
 
                 {{/* 图片画廊（九宫格） */}}
+                {{ $hasImagesParam := isset .Params "images" }}
                 {{ $images := .Params.images }}
-                {{ if not $images }}
+                {{ if not $hasImagesParam }}
                     {{ $contentForImages := .Content | replaceRE "<img[^>]*data-keep=\"1\"[^>]*>" "" }}
                     {{ $imgTags := findRE "<img[^>]+src=\"([^\"]+)\"[^>]*>" $contentForImages }}
                     {{ if $imgTags }}

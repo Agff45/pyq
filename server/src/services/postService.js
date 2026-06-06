@@ -150,7 +150,7 @@ function updatePost(filename, { title, content, author, location, tags, images, 
   }
   if (images !== undefined) {
     if (images && images.length) frontMatter.images = images;
-    else delete frontMatter.images;
+    else frontMatter.images = [];
   }
   if (cover !== undefined) {
     if (cover) frontMatter.cover = cover;
