@@ -219,7 +219,7 @@ function initThemeToggle() {
 function initLightbox() {
     // 图片浏览器初始化
     if (window.ViewImage) {
-        ViewImage.init('.moment-gallery img, .article-gallery img, .article-text img');
+        ViewImage.init('.moment-gallery img, .article-gallery img, .article-text img:not(.live-photo-poster):not([no-view])');
     }
 }
 
@@ -670,6 +670,7 @@ function initMoments() {
                             el.addEventListener('click', function(e) {
                                 if (e.target.closest('.live-photo-control-btn')) return;
                                 e.preventDefault();
+                                e.stopPropagation();
                                 openLivePhotoLightbox(el);
                             });
                         }
@@ -1264,7 +1265,8 @@ class MotionPhoto {
     }
 
     async play() {
-        if (!this.video || this.isPlaying) return;
+        if (!this.video) return false;
+        if (this.isPlaying) return true;
         const token = ++this.playToken;
         clearTimeout(this.resetTimer);
         this.loadVideo();
@@ -1274,15 +1276,19 @@ class MotionPhoto {
         } catch (e) {}
 
         await this.waitUntilReady();
-        if (token !== this.playToken) return;
+        if (token !== this.playToken) return false;
 
         try {
             await this.video.play();
-            if (token !== this.playToken) return;
+            if (token !== this.playToken) return false;
             requestAnimationFrame(() => {
                 if (token === this.playToken) this.container.classList.add('is-playing');
             });
-        } catch (e) {}
+            return true;
+        } catch (e) {
+            this.container.classList.remove('is-playing');
+            return false;
+        }
     }
 
     pause() {
@@ -1342,14 +1348,39 @@ function openLivePhotoLightbox(originalEl) {
     clone.dataset.motionInit = 'false';
     clone.classList.add('lightbox-clone');
 
+    var posterEl = clone.querySelector('.live-photo-poster');
+    var originalPoster = originalEl.querySelector('.live-photo-poster');
+    if (posterEl) {
+        posterEl.setAttribute('no-view', '');
+    }
+
+    var ratioWidth = originalPoster && originalPoster.naturalWidth ? originalPoster.naturalWidth : 0;
+    var ratioHeight = originalPoster && originalPoster.naturalHeight ? originalPoster.naturalHeight : 0;
+    if (!ratioWidth || !ratioHeight) {
+        var rect = originalEl.getBoundingClientRect();
+        ratioWidth = rect.width || 4;
+        ratioHeight = rect.height || 5;
+    }
+    clone.style.setProperty('--live-photo-aspect', ratioWidth + ' / ' + ratioHeight);
+    clone.style.setProperty('--live-photo-ratio', String(ratioWidth / ratioHeight));
+
     var videoEl = clone.querySelector('.live-photo-video');
+    function showPoster() {
+        clone.classList.remove('is-playing');
+        if (videoEl) videoEl.style.opacity = '0';
+        if (posterEl) posterEl.style.opacity = '1';
+    }
+
     if (videoEl) {
         var src = videoEl.dataset.src;
         if (src) {
             videoEl.src = src;
             videoEl.setAttribute('src', src);
             videoEl.load();
+        } else {
+            showPoster();
         }
+        videoEl.addEventListener('error', showPoster, { once: true });
         videoEl.style.cssText = 'display:block;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;z-index:1;border-radius:12px';
     }
 
@@ -1372,10 +1403,14 @@ function openLivePhotoLightbox(originalEl) {
     mp.loadVideo();
 
     setTimeout(function() {
-        mp.play().then(function() {
+        mp.play().then(function(ok) {
             var v = clone.querySelector('.live-photo-video');
-            if (v) v.style.opacity = '1';
-        }).catch(function() {});
+            if (ok && v && !v.error) {
+                v.style.opacity = '1';
+            } else {
+                showPoster();
+            }
+        }).catch(showPoster);
     }, 250);
 
     function closeFn() {

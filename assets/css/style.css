@@ -3562,17 +3562,17 @@ body {
 .live-photo-lightbox .lightbox-clone {
     max-width: 90vw !important;
     max-height: 85vh;
-    width: auto !important;
+    width: min(90vw, calc(85vh * var(--live-photo-ratio, 0.8))) !important;
     height: auto !important;
     position: relative !important;
     margin: 0 auto !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     border-radius: 12px !important;
     cursor: default !important;
     background: transparent !important;
     background-color: transparent !important;
     box-shadow: none !important;
-    aspect-ratio: auto !important;
+    aspect-ratio: var(--live-photo-aspect, 4 / 5) !important;
 }
 .live-photo-lightbox .lightbox-clone .live-photo-video {
     display: block !important;
@@ -3591,12 +3591,14 @@ body {
     z-index: 2 !important;
 }
 .live-photo-lightbox .lightbox-clone .live-photo-poster {
-    position: relative !important;
+    position: absolute !important;
     inset: auto !important;
-    width: auto !important;
-    height: auto !important;
-    max-width: 90vw !important;
-    max-height: 85vh !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
     display: block !important;
     object-fit: contain !important;
     border-radius: 12px !important;

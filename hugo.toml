@@ -1,10 +1,10 @@
 baseURL = 'https://example.com'
-languageCode = 'zh-cn'
+locale = 'zh-cn'
 title = '我的朋友圈'
-theme = 'Amigo'
+# theme = 'Amigo'
 
 [permalinks]
-  posts = "/:filename.html"
+  posts = "/:contentbasename.html"
 
 [params]
   # ---------------------------------------------------------------------------------------
