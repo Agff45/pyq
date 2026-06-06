@@ -175,10 +175,10 @@
                 <footer class="moment-footer">
                     <div class="footer-meta">
                         <span class="moment-time" data-moment-time="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">{{ .Date.Format "2006年1月2号" }}</span>
-                        {{ if and .Site.Params.showLocation .Params.location }}
+                        {{ if and (ne .Site.Params.showLocation false) .Params.location }}
                         <span class="moment-location">{{ .Params.location }}</span>
                         {{ end }}
-                        {{ if and .Site.Params.showTags .Params.tags }}
+                        {{ if and (ne .Site.Params.showTags false) .Params.tags }}
                         <span class="moment-tags">
                             {{ range .Params.tags }}
                             <span class="moment-tag">#{{ . }}</span>

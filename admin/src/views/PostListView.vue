@@ -28,7 +28,7 @@
           v-for="post in posts"
           :key="post.filename"
           class="post-item"
-          @click="$router.push(`/editor/${encodeURIComponent(post.filename)}`)"
+          @click="$router.push({ path: '/editor', query: { file: post.filename } })"
         >
           <div class="post-item-main">
             <div class="post-item-title">

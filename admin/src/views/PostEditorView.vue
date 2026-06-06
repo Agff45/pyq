@@ -207,7 +207,12 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const isEdit = computed(() => !!route.params.filename);
+const editingFilename = computed(() => {
+  const fromQuery = route.query.file;
+  const fromParam = route.params.filename;
+  return String(Array.isArray(fromQuery) ? fromQuery[0] : (fromQuery || fromParam || ''));
+});
+const isEdit = computed(() => !!editingFilename.value);
 const contentText = ref('');
 const galleryImages = ref([]);
 const meta = reactive({
@@ -428,7 +433,7 @@ async function doSave(draft) {
 
   try {
     if (isEdit.value) {
-      await updatePost(route.params.filename, payload);
+      await updatePost(editingFilename.value, payload);
       showToast(draft ? '草稿已保存' : '更新成功', 'success');
     } else {
       const res = await createPost(payload);
@@ -465,7 +470,7 @@ function showToast(msg, type = 'success') {
 onMounted(async () => {
   if (isEdit.value) {
     try {
-      const res = await getPost(route.params.filename);
+      const res = await getPost(editingFilename.value);
       const d = res.data.data;
       contentText.value = d.content || '';
       meta.title = d.frontMatter.title || '';
