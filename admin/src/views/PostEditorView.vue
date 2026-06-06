@@ -422,12 +422,12 @@ async function doSave(draft) {
   const payload = {
     title: meta.title,
     content: contentText.value,
-    author: meta.author || undefined,
-    location: meta.location || undefined,
-    tags: galleryTags.value.length ? galleryTags.value : undefined,
-    images: galleryImages.value.length ? galleryImages.value.map((i) => i.path) : undefined,
-    isLongArticle: meta.isLongArticle || undefined,
-    cover: meta.cover || undefined,
+    author: meta.author,
+    location: meta.location,
+    tags: galleryTags.value,
+    images: galleryImages.value.map((i) => i.path),
+    isLongArticle: meta.isLongArticle,
+    cover: meta.cover,
     draft,
   };
 

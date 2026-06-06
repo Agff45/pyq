@@ -136,14 +136,38 @@ function updatePost(filename, { title, content, author, location, tags, images, 
 
   if (title !== undefined) frontMatter.title = title;
   if (content !== undefined) existing.content = content;
-  if (author !== undefined) frontMatter.author = author;
-  if (location !== undefined) frontMatter.location = location;
-  if (tags !== undefined) frontMatter.tags = tags;
-  if (images !== undefined) frontMatter.images = images;
-  if (cover !== undefined) frontMatter.cover = cover;
-  if (isLongArticle !== undefined) frontMatter.isLongArticle = isLongArticle;
-  if (weight !== undefined) frontMatter.weight = weight;
-  if (draft !== undefined) frontMatter.draft = draft;
+  if (author !== undefined) {
+    if (author) frontMatter.author = author;
+    else delete frontMatter.author;
+  }
+  if (location !== undefined) {
+    if (location) frontMatter.location = location;
+    else delete frontMatter.location;
+  }
+  if (tags !== undefined) {
+    if (tags && tags.length) frontMatter.tags = tags;
+    else delete frontMatter.tags;
+  }
+  if (images !== undefined) {
+    if (images && images.length) frontMatter.images = images;
+    else delete frontMatter.images;
+  }
+  if (cover !== undefined) {
+    if (cover) frontMatter.cover = cover;
+    else delete frontMatter.cover;
+  }
+  if (isLongArticle !== undefined) {
+    if (isLongArticle) frontMatter.isLongArticle = true;
+    else delete frontMatter.isLongArticle;
+  }
+  if (weight !== undefined) {
+    if (weight) frontMatter.weight = weight;
+    else delete frontMatter.weight;
+  }
+  if (draft !== undefined) {
+    if (draft) frontMatter.draft = true;
+    else delete frontMatter.draft;
+  }
 
   frontMatter.lastmod = new Date().toISOString();
   writePost(filename, frontMatter, existing.content);
