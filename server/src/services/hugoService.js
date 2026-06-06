@@ -5,6 +5,9 @@ const config = require('../config');
 
 let buildStatus = 'idle';
 let buildTimer = null;
+let scheduledBuild = null;
+let scheduledResolve = null;
+let buildQueue = Promise.resolve();
 
 const HUGO_BIN = (() => {
   const candidates = [
@@ -50,27 +53,65 @@ function ensureThemeSymlink() {
   }
 }
 
-function build() {
-  return new Promise((resolve) => {
-    clearTimeout(buildTimer);
+function runBuild() {
+  ensureThemeSymlink();
+  buildStatus = 'building';
+  console.log('Hugo 构建中...');
 
-    buildTimer = setTimeout(() => {
-      ensureThemeSymlink();
-      buildStatus = 'building';
-      console.log('Hugo 构建中...');
-      exec(`"${HUGO_BIN}" --minify`, { cwd: config.hugoSitePath, timeout: 90000 }, (err, stdout, stderr) => {
-        if (err) {
-          buildStatus = 'error';
-          console.error('Hugo 构建失败:', stderr || err.message);
-          resolve({ success: false, error: stderr || err.message });
-        } else {
-          buildStatus = 'idle';
-          console.log('Hugo 构建完成');
-          resolve({ success: true });
-        }
-      });
-    }, 2000);
+  return new Promise((resolve) => {
+    exec(`"${HUGO_BIN}" --minify`, { cwd: config.hugoSitePath, timeout: 90000 }, (err, stdout, stderr) => {
+      if (err) {
+        buildStatus = 'error';
+        console.error('Hugo 构建失败:', stderr || err.message);
+        resolve({ success: false, error: stderr || err.message });
+      } else {
+        buildStatus = 'idle';
+        console.log('Hugo 构建完成');
+        resolve({ success: true, stdout, stderr });
+      }
+    });
   });
+}
+
+function queueBuild() {
+  buildQueue = buildQueue.then(() => runBuild());
+  return buildQueue;
+}
+
+function build({ immediate = false } = {}) {
+  if (immediate) {
+    clearTimeout(buildTimer);
+    buildTimer = null;
+
+    if (scheduledResolve) {
+      const resolve = scheduledResolve;
+      scheduledBuild = null;
+      scheduledResolve = null;
+      const queued = queueBuild();
+      queued.then(resolve);
+      return queued;
+    }
+
+    return queueBuild();
+  }
+
+  if (!scheduledBuild) {
+    scheduledBuild = new Promise((resolve) => {
+      scheduledResolve = resolve;
+    });
+  }
+
+  clearTimeout(buildTimer);
+  buildTimer = setTimeout(() => {
+    const resolve = scheduledResolve;
+    scheduledBuild = null;
+    scheduledResolve = null;
+    buildTimer = null;
+
+    queueBuild().then(resolve);
+  }, 2000);
+
+  return scheduledBuild;
 }
 
 function getStatus() {

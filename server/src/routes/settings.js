@@ -18,11 +18,19 @@ router.get('/api/settings', authMiddleware, (req, res) => {
   }
 });
 
-router.put('/api/settings', authMiddleware, (req, res) => {
+router.put('/api/settings', authMiddleware, async (req, res) => {
   try {
     const settings = settingsService.updateSettings(req.body || {});
-    res.json({ code: 0, message: '保存成功', data: settings });
-    hugoService.build();
+    const build = await hugoService.build({ immediate: true });
+    if (!build.success) {
+      return res.status(500).json({
+        code: 500,
+        message: '设置已保存，但站点重建失败: ' + build.error,
+        data: settings,
+        build,
+      });
+    }
+    res.json({ code: 0, message: '保存成功', data: settings, build });
   } catch (err) {
     console.error('保存站点设置失败:', err);
     res.status(500).json({ code: 500, message: '保存站点设置失败: ' + err.message });
