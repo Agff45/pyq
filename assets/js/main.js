@@ -664,6 +664,7 @@ function initMoments() {
                 // 列表页点击实况照片 → 灯箱弹窗播放
                 const isSingle = document.querySelector('.moments-feed.single-view') !== null;
                 if (!isSingle) {
+                    const motionGroup = Array.prototype.slice.call(motionPhotos);
                     motionPhotos.forEach(el => {
                         if (!el._motionClickBound) {
                             el._motionClickBound = true;
@@ -671,7 +672,7 @@ function initMoments() {
                                 if (e.target.closest('.live-photo-control-btn')) return;
                                 e.preventDefault();
                                 e.stopPropagation();
-                                openLivePhotoLightbox(el);
+                                openLivePhotoLightbox(el, motionGroup);
                             });
                         }
                     });
@@ -1340,52 +1341,22 @@ function initMotionPhotos() {
     });
 }
 
-function openLivePhotoLightbox(originalEl) {
+var livePhotoLightboxCleanup = null;
+
+function openLivePhotoLightbox(originalEl, groupEls) {
     closeLivePhotoLightbox();
 
-    var clone = originalEl.cloneNode(true);
-    clone.removeAttribute('style');
-    clone.dataset.motionInit = 'false';
-    clone.classList.add('lightbox-clone');
-
-    var posterEl = clone.querySelector('.live-photo-poster');
-    var originalPoster = originalEl.querySelector('.live-photo-poster');
-    if (posterEl) {
-        posterEl.setAttribute('no-view', '');
-    }
-
-    var ratioWidth = originalPoster && originalPoster.naturalWidth ? originalPoster.naturalWidth : 0;
-    var ratioHeight = originalPoster && originalPoster.naturalHeight ? originalPoster.naturalHeight : 0;
-    if (!ratioWidth || !ratioHeight) {
-        var rect = originalEl.getBoundingClientRect();
-        ratioWidth = rect.width || 4;
-        ratioHeight = rect.height || 5;
-    }
-    clone.style.setProperty('--live-photo-aspect', ratioWidth + ' / ' + ratioHeight);
-    clone.style.setProperty('--live-photo-ratio', String(ratioWidth / ratioHeight));
-
-    var videoEl = clone.querySelector('.live-photo-video');
-    function showPoster() {
-        clone.classList.remove('is-playing');
-        if (videoEl) videoEl.style.opacity = '0';
-        if (posterEl) posterEl.style.opacity = '1';
-    }
-
-    if (videoEl) {
-        var src = videoEl.dataset.src;
-        if (src) {
-            videoEl.src = src;
-            videoEl.setAttribute('src', src);
-            videoEl.load();
-        } else {
-            showPoster();
-        }
-        videoEl.addEventListener('error', showPoster, { once: true });
-        videoEl.style.cssText = 'display:block;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;z-index:1;border-radius:12px';
-    }
+    var items = Array.isArray(groupEls) && groupEls.length ? groupEls : [originalEl];
+    var currentIndex = Math.max(0, items.indexOf(originalEl));
+    var activeMotion = null;
+    var activeClone = null;
+    var isSwitching = false;
 
     var lightbox = document.createElement('div');
     lightbox.className = 'live-photo-lightbox';
+
+    var stage = document.createElement('div');
+    stage.className = 'live-photo-lightbox-stage';
 
     var closeBtn = document.createElement('button');
     closeBtn.className = 'lightbox-close';
@@ -1393,31 +1364,161 @@ function openLivePhotoLightbox(originalEl) {
     closeBtn.setAttribute('aria-label', '关闭');
     lightbox.appendChild(closeBtn);
 
-    lightbox.appendChild(clone);
+    var tools = document.createElement('div');
+    tools.className = 'live-photo-lightbox-tools';
+
+    var count = document.createElement('div');
+    count.className = 'live-photo-lightbox-count';
+    tools.appendChild(count);
+
+    var nav = document.createElement('div');
+    nav.className = 'live-photo-lightbox-nav';
+
+    var prevBtn = document.createElement('button');
+    prevBtn.className = 'live-photo-lightbox-btn live-photo-lightbox-prev';
+    prevBtn.innerHTML = '<i class="ri-arrow-left-s-line"></i>';
+    prevBtn.setAttribute('aria-label', '上一张');
+
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'live-photo-lightbox-btn live-photo-lightbox-next';
+    nextBtn.innerHTML = '<i class="ri-arrow-right-s-line"></i>';
+    nextBtn.setAttribute('aria-label', '下一张');
+
+    nav.appendChild(prevBtn);
+    nav.appendChild(nextBtn);
+    tools.appendChild(nav);
+
+    lightbox.appendChild(stage);
+    lightbox.appendChild(tools);
     document.body.appendChild(lightbox);
 
     document.body.style.overflow = 'hidden';
 
-    var mp = new MotionPhoto(clone, true);
-    clone.dataset.motionInit = 'true';
-    mp.loadVideo();
+    function prepareClone(sourceEl, direction) {
+        var clone = sourceEl.cloneNode(true);
+        clone.removeAttribute('style');
+        clone.dataset.motionInit = 'false';
+        clone.classList.add('lightbox-clone');
+        clone.classList.add(direction === 'prev' ? 'lightbox-enter-prev' : 'lightbox-enter-next');
 
-    setTimeout(function() {
-        mp.play().then(function(ok) {
-            var v = clone.querySelector('.live-photo-video');
-            if (ok && v && !v.error) {
-                v.style.opacity = '1';
+        var posterEl = clone.querySelector('.live-photo-poster');
+        var originalPoster = sourceEl.querySelector('.live-photo-poster');
+        if (posterEl) {
+            posterEl.setAttribute('no-view', '');
+        }
+
+        var ratioWidth = originalPoster && originalPoster.naturalWidth ? originalPoster.naturalWidth : 0;
+        var ratioHeight = originalPoster && originalPoster.naturalHeight ? originalPoster.naturalHeight : 0;
+        if (!ratioWidth || !ratioHeight) {
+            var rect = sourceEl.getBoundingClientRect();
+            ratioWidth = rect.width || 4;
+            ratioHeight = rect.height || 5;
+        }
+        clone.style.setProperty('--live-photo-aspect', ratioWidth + ' / ' + ratioHeight);
+        clone.style.setProperty('--live-photo-ratio', String(ratioWidth / ratioHeight));
+
+        var videoEl = clone.querySelector('.live-photo-video');
+        function showPoster() {
+            clone.classList.remove('is-playing');
+            if (videoEl) videoEl.style.opacity = '0';
+            if (posterEl) posterEl.style.opacity = '1';
+        }
+
+        if (videoEl) {
+            var src = videoEl.dataset.src;
+            if (src) {
+                videoEl.src = src;
+                videoEl.setAttribute('src', src);
+                videoEl.load();
             } else {
                 showPoster();
             }
-        }).catch(showPoster);
-    }, 250);
+            videoEl.addEventListener('error', showPoster, { once: true });
+            videoEl.style.cssText = 'display:block;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;z-index:1;border-radius:12px';
+        }
+
+        return { clone, showPoster };
+    }
+
+    function stopActive() {
+        if (activeMotion) activeMotion.pause();
+        if (activeClone) {
+            var video = activeClone.querySelector('.live-photo-video');
+            if (video) {
+                try {
+                    video.pause();
+                    video.currentTime = 0;
+                } catch (e) {}
+            }
+        }
+    }
+
+    function updateTools() {
+        count.innerHTML = '<b>' + (currentIndex + 1) + '</b>/' + items.length;
+        var multiple = items.length > 1;
+        tools.style.display = multiple ? 'flex' : 'none';
+    }
+
+    function showItem(index, direction) {
+        if (isSwitching || !items.length) return;
+        isSwitching = true;
+        stopActive();
+
+        currentIndex = (index + items.length) % items.length;
+        updateTools();
+
+        var prepared = prepareClone(items[currentIndex], direction || 'next');
+        var clone = prepared.clone;
+        var oldClone = activeClone;
+
+        stage.appendChild(clone);
+        activeClone = clone;
+
+        requestAnimationFrame(function() {
+            clone.classList.remove('lightbox-enter-prev', 'lightbox-enter-next');
+            clone.classList.add('lightbox-active');
+            if (oldClone) {
+                oldClone.classList.remove('lightbox-active');
+                oldClone.classList.add(direction === 'prev' ? 'lightbox-exit-next' : 'lightbox-exit-prev');
+            }
+        });
+
+        activeMotion = new MotionPhoto(clone, true);
+        clone.dataset.motionInit = 'true';
+        activeMotion.loadVideo();
+
+        setTimeout(function() {
+            activeMotion.play().then(function(ok) {
+                var v = clone.querySelector('.live-photo-video');
+                if (ok && v && !v.error) {
+                    v.style.opacity = '1';
+                } else {
+                    prepared.showPoster();
+                }
+            }).catch(prepared.showPoster);
+        }, 180);
+
+        setTimeout(function() {
+            if (oldClone && oldClone.parentNode) oldClone.parentNode.removeChild(oldClone);
+            isSwitching = false;
+        }, 260);
+    }
+
+    function goPrev() {
+        showItem(currentIndex - 1, 'prev');
+    }
+
+    function goNext() {
+        showItem(currentIndex + 1, 'next');
+    }
+
+    showItem(currentIndex, 'next');
 
     function closeFn() {
         lightbox.classList.add('live-lightbox-out');
         setTimeout(function() {
+            if (livePhotoLightboxCleanup) livePhotoLightboxCleanup();
             if (lightbox.parentNode) lightbox.parentNode.removeChild(lightbox);
-            document.body.style.overflow = '';
         }, 250);
     }
 
@@ -1430,17 +1531,38 @@ function openLivePhotoLightbox(originalEl) {
         if (e.target === lightbox) closeFn();
     });
 
+    prevBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        goPrev();
+    });
+
+    nextBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        goNext();
+    });
+
     var escHandler = function(e) {
         if (e.key === 'Escape') {
             closeFn();
-            document.removeEventListener('keydown', escHandler);
+        } else if (e.key === 'ArrowLeft' && items.length > 1) {
+            goPrev();
+        } else if (e.key === 'ArrowRight' && items.length > 1) {
+            goNext();
         }
     };
     document.addEventListener('keydown', escHandler);
+
+    livePhotoLightboxCleanup = function() {
+        stopActive();
+        document.removeEventListener('keydown', escHandler);
+        document.body.style.overflow = '';
+        livePhotoLightboxCleanup = null;
+    };
 }
 
 function closeLivePhotoLightbox() {
     var existing = document.querySelector('.live-photo-lightbox');
+    if (livePhotoLightboxCleanup) livePhotoLightboxCleanup();
     if (existing) {
         existing.parentNode.removeChild(existing);
     }
