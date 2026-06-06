@@ -36,9 +36,15 @@
             <div class="media-thumb" @click="previewItem(item)">
               <img v-if="item.type === 'image'" :src="item.path" :alt="item.filename" loading="lazy" />
               <img v-else-if="item.thumb" :src="item.thumb" :alt="item.filename" loading="lazy" />
-              <div v-else-if="item.type === 'video'" class="media-icon-placeholder">
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
-              </div>
+              <video
+                v-else-if="item.type === 'video'"
+                class="media-video-thumb"
+                :src="item.path"
+                muted
+                playsinline
+                preload="metadata"
+                @loadedmetadata="primeVideoThumb"
+              ></video>
               <div v-else-if="item.type === 'audio'" class="media-icon-placeholder">
                 <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               </div>
@@ -46,6 +52,11 @@
                 <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
               </div>
               <div v-if="item.type === 'video'" class="media-duration-badge">视频</div>
+              <div v-if="item.type === 'video'" class="media-play-badge">
+                <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                  <polygon points="8,5 19,12 8,19" fill="currentColor"/>
+                </svg>
+              </div>
               <div v-if="item.type === 'audio'" class="media-duration-badge">音频</div>
             </div>
             <div class="media-info">
@@ -223,6 +234,19 @@ async function handleUpload(e) {
 function previewItem(item) {
   previewItemData.value = item;
   previewVisible.value = true;
+}
+
+function primeVideoThumb(e) {
+  const video = e.currentTarget;
+  if (!video || video.dataset.thumbReady) return;
+  const duration = Number.isFinite(video.duration) ? video.duration : 0;
+  const targetTime = duration > 1 ? Math.min(1, duration * 0.08) : 0;
+  try {
+    video.currentTime = targetTime;
+  } catch {
+    // Some browsers or formats may reject seeking during metadata load.
+  }
+  video.dataset.thumbReady = 'true';
 }
 
 async function copyPath(p) {
