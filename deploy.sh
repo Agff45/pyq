@@ -18,6 +18,7 @@ SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="/var/lib/amigo/install.env"
 NODE_INSTALLED_BY_AMIGO=0
 HUGO_INSTALLED_BY_AMIGO=0
+HUGO_VERSION_REQUIRED="0.162.1"
 NGINX_INSTALLED_BY_AMIGO=0
 DEFAULT_SITE_DISABLED_BY_AMIGO=0
 UFW_HTTP_ADDED_BY_AMIGO=0
@@ -141,13 +142,11 @@ install_node() {
 
 hugo_ok() {
   command -v hugo >/dev/null 2>&1 || return 1
-  local version
-  version="$(hugo version | sed -n 's/.*v\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1 \2/p' | head -n1)"
-  [ -n "$version" ] || return 1
-  local major minor
-  major="$(echo "$version" | awk '{print $1}')"
-  minor="$(echo "$version" | awk '{print $2}')"
-  [ "$major" -gt 0 ] || [ "$minor" -ge 128 ]
+  local current oldest
+  current="$(hugo version | sed -n 's/.*v\([0-9][0-9.]*\).*/\1/p' | head -n1)"
+  [ -n "$current" ] || return 1
+  oldest="$(printf '%s\n%s\n' "$HUGO_VERSION_REQUIRED" "$current" | sort -V | head -n1)"
+  [ "$oldest" = "$HUGO_VERSION_REQUIRED" ]
 }
 
 install_hugo() {
@@ -157,7 +156,7 @@ install_hugo() {
     return
   fi
 
-  local version="0.128.2"
+  local version="$HUGO_VERSION_REQUIRED"
   HUGO_INSTALLED_BY_AMIGO=1
   local arch
   case "$(uname -m)" in

@@ -159,7 +159,7 @@ INSTALL_DIR=/srv/amigo PORT=4000 bash deploy.sh
 1. 检测系统发行版。
 2. 安装 `curl`、`rsync`、`openssl`、编译工具、Nginx 等依赖。
 3. 安装或复用 Node.js 18+。
-4. 安装或复用 Hugo extended 0.128+。
+4. 安装或复用 Hugo extended 0.162.1+。
 5. 复制项目到 `/opt/amigo`。
 6. 生成 `server/.env`。
 7. 安装 `server` 和 `admin` 依赖。
@@ -404,9 +404,18 @@ hugo --minify
 
 常见原因：
 
+- Hugo 版本太旧
 - Front Matter YAML 格式错误
 - 短代码参数缺失
 - 图片或视频路径写错
+
+如果看到这行：
+
+```text
+The CJS build of Vite's Node API is deprecated.
+```
+
+这是 Vite 的警告，不是部署失败原因。真正导致失败的通常是后面 `Error:` 开头的 Hugo 报错。
 
 ### 部署脚本中途失败
 
