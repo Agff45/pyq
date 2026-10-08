@@ -12,6 +12,14 @@ class InvalidPostFilenameError extends Error {
   }
 }
 
+class InvalidPostDateError extends Error {
+  constructor(message = '无效的发帖日期') {
+    super(message);
+    this.name = 'InvalidPostDateError';
+    this.statusCode = 400;
+  }
+}
+
 function isPathInside(childPath, parentPath) {
   const relative = path.relative(parentPath, childPath);
   return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative));
@@ -70,6 +78,29 @@ function saveIndex(index) {
   fs.writeFileSync(config.indexPath, JSON.stringify(index, null, 2), 'utf-8');
 }
 
+function getVpsLocalDate() {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, '0');
+  const offsetMinutes = -now.getTimezoneOffset();
+  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
+  const offsetRemainder = pad(Math.abs(offsetMinutes) % 60);
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}${offsetSign}${offsetHours}:${offsetRemainder}`;
+}
+
+function normalizePostDate(date) {
+  if (date === undefined || date === null || date === '') return getVpsLocalDate();
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new InvalidPostDateError('发帖日期格式无效');
+  }
+  const [year, month, day] = date.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+    throw new InvalidPostDateError('发帖日期无效');
+  }
+  return date;
+}
+
 function readPost(filename) {
   const filePath = getPostPath(filename);
   if (!fs.existsSync(filePath)) return null;
@@ -88,7 +119,7 @@ function writePost(filename, frontMatter, content) {
   const filePath = getPostPath(filename);
   const fm = { ...frontMatter };
   if (!fm.date) {
-    fm.date = new Date().toISOString();
+    fm.date = getVpsLocalDate();
   }
   const markdown = matter.stringify((content || '').trim(), fm);
   fs.writeFileSync(filePath, markdown, 'utf-8');
@@ -141,10 +172,11 @@ function removeFromIndex(filename) {
 
 function createPost({ title, content, author, location, tags, images, cover, isLongArticle, weight, draft, date }) {
   ensureContentDir();
-  const filename = generateFilename(title || '未命名', date);
+  const postDate = normalizePostDate(date);
+  const filename = generateFilename(title || '未命名', postDate);
   const frontMatter = {
     title: title || '未命名',
-    date: date || new Date().toISOString(),
+    date: postDate,
   };
 
   if (author) frontMatter.author = author;
@@ -165,7 +197,7 @@ function createPost({ title, content, author, location, tags, images, cover, isL
 }
 
 function updatePost(filename, {
-  title, content, author, location, tags, images, imagesTouched, cover, isLongArticle, weight, draft,
+  title, content, author, location, tags, images, imagesTouched, cover, isLongArticle, weight, draft, date,
 }) {
   const existing = readPost(filename);
   if (!existing) return null;
@@ -173,6 +205,7 @@ function updatePost(filename, {
   const frontMatter = { ...existing.frontMatter };
 
   if (title !== undefined) frontMatter.title = title;
+  if (date !== undefined) frontMatter.date = normalizePostDate(date);
   if (content !== undefined) existing.content = content;
   if (author !== undefined) {
     if (author) frontMatter.author = author;
@@ -304,4 +337,5 @@ module.exports = {
   upsertIndexEntry,
   rebuildIndex,
   InvalidPostFilenameError,
+  InvalidPostDateError,
 };

@@ -81,6 +81,17 @@
 
           <div class="meta-checks">
             <label class="check-item">
+              <input type="checkbox" v-model="meta.customDateEnabled" />
+              <span>自定义发帖时间（关闭则使用 VPS 时间）</span>
+            </label>
+          </div>
+          <div v-if="meta.customDateEnabled" class="meta-row">
+            <label class="meta-label">发帖日期</label>
+            <input v-model="meta.customDate" type="date" class="meta-input" />
+          </div>
+
+          <div class="meta-checks">
+            <label class="check-item">
               <input type="checkbox" v-model="meta.isLongArticle" />
               <span>长文章模式（首页显示为卡片）</span>
             </label>
@@ -218,6 +229,7 @@ const galleryImages = ref([]);
 const meta = reactive({
   title: '', author: '', location: '',
   isLongArticle: false, cover: '', draft: false,
+  customDateEnabled: false, customDate: '',
 });
 const tagsInput = ref('');
 const saving = ref(false);
@@ -420,6 +432,10 @@ async function doSave(draft) {
     showToast('请至少填写内容、上传图片或填写标题', 'error');
     return;
   }
+  if (meta.customDateEnabled && !meta.customDate) {
+    showToast('请选择自定义发帖日期', 'error');
+    return;
+  }
   saving.value = true;
 
   const payload = {
@@ -434,6 +450,7 @@ async function doSave(draft) {
     cover: meta.cover,
     draft,
   };
+  if (meta.customDateEnabled) payload.date = meta.customDate;
 
   try {
     if (isEdit.value) {
@@ -483,6 +500,10 @@ onMounted(async () => {
       meta.isLongArticle = !!d.frontMatter.isLongArticle;
       meta.cover = d.frontMatter.cover || '';
       meta.draft = !!d.frontMatter.draft;
+      if (d.frontMatter.date) {
+        const postDate = String(d.frontMatter.date).slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(postDate)) meta.customDate = postDate;
+      }
       tagsInput.value = (d.frontMatter.tags || []).join(', ');
       if (d.frontMatter.images) {
         galleryImages.value = d.frontMatter.images.map((p) => ({ path: p, preview: p, uploaded: true }));

@@ -15,10 +15,11 @@ function generateSlug(title) {
 }
 
 function generateFilename(title, date) {
-  const d = date ? new Date(date) : new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
+  const dateMatch = typeof date === 'string' && date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const d = dateMatch ? null : (date ? new Date(date) : new Date());
+  const yyyy = dateMatch ? dateMatch[1] : d.getFullYear();
+  const mm = dateMatch ? dateMatch[2] : String(d.getMonth() + 1).padStart(2, '0');
+  const dd = dateMatch ? dateMatch[3] : String(d.getDate()).padStart(2, '0');
   const slug = generateSlug(title || '未命名');
   return `${yyyy}-${mm}-${dd}-${slug}.md`;
 }

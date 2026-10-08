@@ -1041,19 +1041,21 @@ body:has(.view-image) .single-header {
 }
 
 .moments-feed:not(.single-view) .moment-text.has-motion-photos {
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: grid !important;
+    grid-template-columns: repeat(var(--motion-photo-columns, 1), minmax(0, 1fr));
     gap: var(--moment-media-gap);
+    align-items: start;
 }
 
 .moments-feed:not(.single-view) .moment-text.has-motion-photos[data-motion-count="1"] {
-    display: block !important;
+    display: flex !important;
+    justify-content: center;
 }
 
 .moments-feed .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
     width: min(var(--motion-photo-single-width-ratio), var(--motion-photo-single-max-width));
-    justify-self: start;
+    margin-left: auto !important;
+    margin-right: auto !important;
     aspect-ratio: auto !important;
 }
 
@@ -3960,4 +3962,82 @@ body {
 }
 .live-photo-lightbox-btn:active {
     transform: scale(0.94);
+}
+
+/* 实况照片排版：1 张居中，2 张并排，3 张九宫格自适应 */
+.moment-text.has-motion-photos,
+.article-text.has-motion-photos {
+    align-items: start;
+}
+
+/* --- 列表页 --- */
+/* 1 张：居中显示 */
+.moments-feed .moment-text.has-motion-photos[data-motion-count="1"] {
+    display: flex !important;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.moments-feed .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 2 张：并排 */
+.moments-feed .moment-text.has-motion-photos[data-motion-count="2"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--moment-media-gap);
+}
+
+/* 3 张及以上：九宫格（3 列） */
+.moments-feed .moment-text.has-motion-photos[data-motion-count="3"] {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--moment-media-gap);
+}
+
+/* 多张时容器正方形裁切 */
+.moments-feed .moment-text.has-motion-photos[data-motion-count="2"] .live-photo-container,
+.moments-feed .moment-text.has-motion-photos[data-motion-count="3"] .live-photo-container {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+}
+
+/* 小屏 3 张降为 2 列，自动换行 */
+@media (max-width: 520px) {
+    .moments-feed .moment-text.has-motion-photos[data-motion-count="3"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* --- 文章内页 --- */
+/* 1 张：居中 */
+.single-view .article-text.has-motion-photos[data-motion-count="1"] {
+    display: flex !important;
+    justify-content: center;
+}
+
+/* 2 张：并排 */
+.single-view .article-text.has-motion-photos[data-motion-count="2"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--moment-media-gap);
+}
+
+/* 3 张：九宫格 */
+.single-view .article-text.has-motion-photos[data-motion-count="3"] {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--moment-media-gap);
+}
+
+.single-view .article-text.has-motion-photos[data-motion-count="2"] .live-photo-container,
+.single-view .article-text.has-motion-photos[data-motion-count="3"] .live-photo-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    aspect-ratio: 1 / 1 !important;
 }

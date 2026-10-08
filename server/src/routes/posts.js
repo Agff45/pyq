@@ -19,7 +19,7 @@ function parseOptionalBoolean(value) {
 }
 
 function sendRouteError(res, err, fallbackMessage) {
-  if (err instanceof postService.InvalidPostFilenameError) {
+  if (err instanceof postService.InvalidPostFilenameError || err instanceof postService.InvalidPostDateError) {
     return res.status(400).json({ code: 400, message: err.message });
   }
   return res.status(500).json({ code: 500, message: fallbackMessage });
@@ -95,6 +95,9 @@ router.post('/api/posts', authMiddleware, async (req, res) => {
     await finishWithBuild(res, '发布成功', post);
   } catch (err) {
     console.error('创建文章失败:', err);
+    if (err instanceof postService.InvalidPostDateError) {
+      return res.status(400).json({ code: 400, message: err.message });
+    }
     res.status(500).json({ code: 500, message: '创建文章失败: ' + err.message });
   }
 });
@@ -108,7 +111,7 @@ router.put('/api/posts/:filename', authMiddleware, async (req, res) => {
     await finishWithBuild(res, '更新成功', post);
   } catch (err) {
     console.error('更新文章失败:', err);
-    if (err instanceof postService.InvalidPostFilenameError) {
+    if (err instanceof postService.InvalidPostFilenameError || err instanceof postService.InvalidPostDateError) {
       return res.status(400).json({ code: 400, message: err.message });
     }
     res.status(500).json({ code: 500, message: '更新文章失败: ' + err.message });

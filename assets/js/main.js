@@ -685,11 +685,13 @@ function formatMomentTimes() {
 
         // 获取今天的日期
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
         // 判断是否是今天
-        const isToday = date >= today;
+        const isToday = date >= today && date < tomorrow;
         // 判断是否是昨天
         const isYesterday = date >= yesterday && date < today;
 
@@ -780,7 +782,7 @@ function initMoments() {
                     });
                 }
 
-                const cols = (motionPhotos.length === 2 || motionPhotos.length === 4) ? 2 : Math.min(motionPhotos.length, 3);
+                const cols = motionPhotos.length === 1 ? 1 : (motionPhotos.length === 2 ? 2 : 3);
                 const colsMd = Math.min(motionPhotos.length, 2);
                 const colsSm = 1;
                 textDiv.style.setProperty('--motion-photo-columns', String(cols));
