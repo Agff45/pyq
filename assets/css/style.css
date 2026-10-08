@@ -51,9 +51,9 @@
     --text-on-cover: #ffffff;
     --text-quote: #6a737d;
 
-    /* 功能性颜色 */
+    /* 功能性颜�?*/
     --theme-color: #07c160;
-    /* 微信绿 */
+    /* 微信�?*/
     --border-main: #eeeeee;
     --border-quote: #dfe2e5;
     --shadow-main: rgba(0, 0, 0, 0.03);
@@ -119,7 +119,7 @@
     box-sizing: border-box;
 }
 
-/* 去掉常用块级元素的默认间距 */
+/* 去掉常用块级元素的默认间�?*/
 body,
 h1,
 h2,
@@ -136,7 +136,7 @@ ol {
     padding: 0;
 }
 
-/* 页面焦点状态下的平滑滚动 */
+/* 页面焦点状态下的平滑滚�?*/
 html:focus-within {
     scroll-behavior: smooth;
 }
@@ -242,7 +242,7 @@ blockquote {
    3. 布局组件
    ========================================================================== */
 
-/* 页面主容器 */
+/* 页面主容�?*/
 .main-wrapper {
     max-width: var(--max-width);
     margin: 0 auto;
@@ -253,7 +253,7 @@ blockquote {
     box-shadow: 0 0 20px var(--shadow-main);
 }
 
-/* 顶部封面图区域 */
+/* 顶部封面图区�?*/
 .moments-header {
     position: relative;
     width: 100%;
@@ -261,7 +261,7 @@ blockquote {
     background-size: cover;
     background-position: center;
     background-color: var(--text-main);
-    /* 图片没加载出来的兜底色 */
+    /* 图片没加载出来的兜底�?*/
     margin-bottom: 12px;
 }
 
@@ -605,7 +605,7 @@ blockquote {
     display: inline-block;
 }
 
-/* 动态列表 */
+/* 动态列�?*/
 .moments-feed {
     padding: 0 20px;
     animation: fadeIn 0.5s ease-out;
@@ -628,7 +628,7 @@ blockquote {
     border-bottom: none;
 }
 
-/* 动态头像 */
+/* 动态头�?*/
 .moment-aside {
     width: 42px;
     height: 42px;
@@ -642,7 +642,7 @@ blockquote {
     background: var(--bg-hover);
 }
 
-/* 动态主体 */
+/* 动态主�?*/
 .moment-body {
     min-width: 0;
 }
@@ -905,16 +905,16 @@ blockquote {
     transform: translateY(0);
 }
 
-/* 废弃的悬浮返回顶部按钮 */
+/* 废弃的悬浮返回顶部按�?*/
 #back-to-top {
     display: none !important;
 }
 
-/* 菜单遮罩层 - 重新设计的平滑体验 */
+/* 菜单遮罩�?- 重新设计的平滑体�?*/
 /* 层级管理 */
 /* .home-header, .single-header { z-index: 1100; } */
 
-/* 开启图片浏览器时隐藏页眉 */
+/* 开启图片浏览器时隐藏页�?*/
 body:has(.view-image) .home-header,
 body:has(.view-image) .single-header {
     display: none !important;
@@ -924,7 +924,7 @@ body:has(.view-image) .single-header {
     display: none;
 }
 
-/* 保留旧规则作为引用 */
+/* 保留旧规则作为引�?*/
 /* .home-header.old {
     width: 100%;
     max-width: var(--max-width);
@@ -981,7 +981,7 @@ body:has(.view-image) .single-header {
 }
 
 /* ==========================================================================
-   搜索栏 — 左上角图标 + 点击向右展开
+   搜索�?�?左上角图�?+ 点击向右展开
    ========================================================================== */
 .header-search {
     display: flex;
@@ -1169,8 +1169,6 @@ body:has(.view-image) .single-header {
 
 .moments-feed .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
     width: min(var(--motion-photo-single-width-ratio), var(--motion-photo-single-max-width));
-    margin-left: auto !important;
-    margin-right: auto !important;
     aspect-ratio: auto !important;
 }
 
@@ -1197,7 +1195,7 @@ body:has(.view-image) .single-header {
     display: none !important;
 }
 
-/* 含有视频时：取消折叠，缩小尺寸 */
+/* 含有视频时：取消折叠，缩小尺�?*/
 .moment-text.has-video,
 .article-text.has-video {
     max-height: none !important;
@@ -1267,7 +1265,7 @@ body:has(.view-image) .single-header {
     display: none !important;
 }
 
-/* 首页语音气泡：柔和风格 */
+/* 首页语音气泡：柔和风�?*/
 .moments-feed .amigo-voice-bubble {
     background: var(--bg-hover);
     color: var(--text-main);
@@ -1297,7 +1295,7 @@ body:has(.view-image) .single-header {
     font-size: 15px;
 }
 
-/* 文章内页视频：全宽展示 */
+/* 文章内页视频：全宽展�?*/
 .single-view .amigo-video-container {
     max-width: 100%;
 }
@@ -1319,7 +1317,7 @@ body:has(.view-image) .single-header {
     opacity: 0.8;
 }
 
-/* 九宫格画廊样式 */
+/* 九宫格画廊样�?*/
 .moment-gallery {
     margin-top: 8px;
 }
@@ -1377,7 +1375,7 @@ body:has(.view-image) .single-header {
     margin-bottom: 6px;
 }
 
-/* ===== 长文章博客卡片 ===== */
+/* ===== 长文章博客卡�?===== */
 .long-card-link {
     display: flex;
     align-items: stretch;
@@ -1465,7 +1463,7 @@ body:has(.view-image) .single-header {
     overflow: hidden;
 }
 
-/* 无封面图时 */
+/* 无封面图�?*/
 .long-card-link:not(:has(.long-card-thumb)) .long-card-info {
     padding: 14px;
 }
@@ -1801,7 +1799,7 @@ body:has(.view-image) .single-header {
     text-decoration: underline;
 }
 
-/* 操作菜单（点赞/评论弹出框） */
+/* 操作菜单（点�?评论弹出框） */
 .action-wrapper {
     position: relative;
     height: 20px;
@@ -2413,8 +2411,7 @@ body {
 */
 
 /* ==========================================================================
-   音乐播放器样式
-   ========================================================================== */
+   音乐播放器样�?   ========================================================================== */
 
 .music-player {
     margin: 20px 0;
@@ -2489,7 +2486,7 @@ body {
     color: var(--text-desc);
 }
 
-/* 进度条 */
+/* 进度�?*/
 .music-progress {
     margin-bottom: 16px;
 }
@@ -2593,7 +2590,7 @@ body {
     margin-left: 4px;
 }
 
-/* 播放状态样式 */
+/* 播放状态样�?*/
 .music-player.playing .music-cover {
     animation: rotate 20s linear infinite;
 }
@@ -2769,7 +2766,7 @@ body {
     pointer-events: auto;
 }
 
-/* 控制栏 */
+/* 控制�?*/
 .live-card-controls {
     position: absolute;
     top: 16px;
@@ -2809,7 +2806,7 @@ body {
     font-size: 18px;
 }
 
-/* 进度条 */
+/* 进度�?*/
 .live-card-progress {
     position: absolute;
     bottom: 0;
@@ -2851,7 +2848,7 @@ body {
 }
 
 /* ==========================================================================
-   视频播放器样式 (video shortcode)
+   视频播放器样�?(video shortcode)
    ========================================================================== */
 
 .amigo-video-container {
@@ -3453,7 +3450,7 @@ body {
     }
 }
 
-/* 时间线 */
+/* 时间�?*/
 .amigo-music-card__timeline {
     --music-track-height: 4px;
     --music-thumb-size: 12px;
@@ -3690,7 +3687,7 @@ body {
     transition: box-shadow 0.22s ease;
 }
 
-/* ===== 朋友圈列表页：实况照片看起来就是一张普通图片 ===== */
+/* ===== 朋友圈列表页：实况照片看起来就是一张普通图�?===== */
 .moments-feed:not(.single-view) .live-photo-container {
     position: relative;
     cursor: pointer;
@@ -3737,7 +3734,7 @@ body {
     object-fit: cover;
 }
 
-/* 文章内页：恢复播放功能 */
+/* 文章内页：恢复播放功�?*/
 .single-view .live-photo-container {
     cursor: pointer;
     box-shadow: var(--motion-photo-shadow-idle);
@@ -3757,7 +3754,7 @@ body {
     display: block;
 }
 
-/* 文章内页：限制实况照片大小 */
+/* 文章内页：限制实况照片大�?*/
 .single-view .article-text .live-photo-container {
     width: 68%;
     max-width: 320px;
@@ -3887,8 +3884,7 @@ body {
 }
 
 /* ==========================================================================
-   首页浮动搜索栏
-   ========================================================================== */
+   首页浮动搜索�?   ========================================================================== */
 .home-floating-bar {
     position: absolute;
     top: 8px;
@@ -4215,13 +4211,13 @@ body {
     transform: scale(0.94);
 }
 
-/* 实况照片排版：1 张居中，2 张并排，3 张九宫格自适应 */
+/* 实况照片排版�? 张居中，2 张并排，3 张九宫格自适应 */
 .moment-text.has-motion-photos,
 .article-text.has-motion-photos {
     align-items: start;
 }
 
-/* --- 列表页 --- */
+/* --- 列表�?--- */
 /* 1 张：居中显示 */
 .moments-feed .moment-text.has-motion-photos[data-motion-count="1"] {
     display: grid !important;
@@ -4229,8 +4225,7 @@ body {
 }
 
 .moments-feed .moment-text.has-motion-photos[data-motion-count="1"] .live-photo-container {
-    margin-left: auto !important;
-    margin-right: auto !important;
+    
 }
 
 /* 2 张：并排 */
@@ -4240,7 +4235,7 @@ body {
     gap: var(--moment-media-gap);
 }
 
-/* 3 张及以上：九宫格（3 列） */
+/* 3 张及以上：九宫格�? 列） */
 .moments-feed .moment-text.has-motion-photos[data-motion-count="3"] {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4256,7 +4251,7 @@ body {
     aspect-ratio: 1 / 1 !important;
 }
 
-/* 小屏 3 张降为 2 列，自动换行 */
+/* 小屏 3 张降�?2 列，自动换行 */
 @media (max-width: 520px) {
     .moments-feed .moment-text.has-motion-photos[data-motion-count="3"] {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4277,7 +4272,7 @@ body {
     gap: var(--moment-media-gap);
 }
 
-/* 3 张：九宫格 */
+/* 3 张：九宫�?*/
 .single-view .article-text.has-motion-photos[data-motion-count="3"] {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
