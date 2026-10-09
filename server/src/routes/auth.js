@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-const ENV_PATH = path.join(__dirname, '../.env');
+const ENV_PATH = path.join(__dirname, '../../.env');
 
 function formatEnvValue(value) {
   const text = String(value);
